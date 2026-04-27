@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-LOG=/var/log/denodo_install.log
-touch $LOG
-chown -R denodo:denodo "$LOG"
+LOG=/var/log/4-denodo_install.log
+sudo touch $LOG
+sudo chown -R denodo:denodo "$LOG"
 # This configures a bash environment with robust error handling and logging. Here's what each part does:
 set -uo pipefail
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
