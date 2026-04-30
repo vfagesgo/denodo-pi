@@ -8,40 +8,42 @@ sudo chown -R denodo:denodo "$LOG"
 set -uo pipefail
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 
-if [ 1 == 2 ]; then #VFG Debug
-  echo "1️⃣ - Checking the input parameters and loading env variables" | tee -a $LOG
 
-  # ---- 1. Load environment variables if present
-  if [ -f /boot/firmware/denodo_config.env ]; then
-      echo "[INSTAL] Loading config from /boot/firmware/denodo_config.env" | tee -a $LOG
-      set -o allexport
-      source /boot/firmware/denodo_config.env
-      set +o allexport
-  else
-      echo "💩 - No config file found" | tee -a $LOG
-  fi
+echo "1️⃣ - Checking the input parameters and loading env variables" | tee -a $LOG
 
-  # Checking the hardware platform
-  echo "2️⃣ - Verifying hardware compatibility" | tee -a $LOG
-  if [[ -z "${test:-}" ]]; then
-    model=$(grep "^Model" /proc/cpuinfo ; true)
-    if [[  "$model" != *"Raspberry Pi Zero"* && "$model" != *"Raspberry Pi 4"* ]]; then
-      # not a Pi Zero, Zero 2 or Pi 4
-      echo "💩 - Installation only planned on Raspberry Pi Zero or Pi 4, will cowardly exit" | tee -a $LOG
-      exit 1
-    fi
-  else
-    echo "⚠️ ci-chroot-test is set → running in dev mode (non-Pi system)" | tee -a $LOG
-  fi
+# ---- 1. Load environment variables if present
+if [ -f /boot/firmware/denodo/denodo_config.env ]; then
+    echo "[INSTAL] Loading config from /boot/firmware/denodo/denodo_config.env" | tee -a $LOG
+    set -o allexport
+    source /boot/firmware/denodo/denodo_config.env
+    set +o allexport
+else
+    echo "💩 - No config file found" | tee -a $LOG
+fi
 
-  echo "3️⃣ - Checking User used for install" | tee -a $LOG
-  user="${USER:-$(id -un 2>/dev/null || echo "#$(id -u)")}"
-  if [ "$user" = "root" ] || [ "$user" = "#0" ]; then
-    echo "💩 - Please run this script as a regular user with sudo privileges" | tee -a $LOG
+# Checking the hardware platform
+echo "2️⃣ - Verifying hardware compatibility" | tee -a $LOG
+if [[ -z "${test:-}" ]]; then
+  model=$(grep "^Model" /proc/cpuinfo ; true)
+  if [[  "$model" != *"Raspberry Pi Zero"* && "$model" != *"Raspberry Pi 4"* ]]; then
+    # not a Pi Zero, Zero 2 or Pi 4
+    echo "💩 - Installation only planned on Raspberry Pi Zero or Pi 4, will cowardly exit" | tee -a $LOG
     exit 1
   fi
+else
+  echo "⚠️ ci-chroot-test is set → running in dev mode (non-Pi system)" | tee -a $LOG
+fi
+
+echo "3️⃣ - Checking User used for install" | tee -a $LOG
+user="${USER:-$(id -un 2>/dev/null || echo "#$(id -u)")}"
+if [ "$user" = "root" ] || [ "$user" = "#0" ]; then
+  echo "💩 - Please run this script as a regular user with sudo privileges" | tee -a $LOG
+  exit 1
+fi
 
 
+
+if [ 1 == 2 ]; then #VFG Debug
   # Install Necessary Packages:
   echo "4️⃣ - Update the necessary packages" | tee -a $LOG
   sudo apt update -y 
@@ -227,6 +229,7 @@ if [ 1 == 2 ]; then #VFG Debug
   fi
 
   sudo -u postgres psql -c "ALTER ROLE $DENODO_PG_USER CREATEDB"
+
 else 
 #VFG Debug
   echo "1️⃣1️⃣ - Configure Python virtual environlent" | tee -a $LOG

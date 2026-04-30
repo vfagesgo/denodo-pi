@@ -1,0 +1,10 @@
+[Unit]
+Description=Apply WiFi config from bootfs
+After=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/denodo-pi/tools/apply-wifi.sh
+
+[Install]
+WantedBy=multi-user.target
