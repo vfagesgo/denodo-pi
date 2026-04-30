@@ -16,9 +16,9 @@ else
 fi
 
 # ---- 2. Wait for internet ----
-echo "[INIT] internet $SSID" | tee -a $LOG
-sudo chmod +x "/boot/firmware/denodo/tools/apply-wifi.sh"
-sudo -H "$/boot/firmware/denodo/tools/apply-wifi.sh"
+#echo "[INIT] internet $SSID" | tee -a $LOG
+#sudo chmod +x "/boot/firmware/denodo/tools/apply-wifi.sh"
+#sudo -H "$/boot/firmware/denodo/tools/apply-wifi.sh"
 
 echo "[INIT] Waiting for internet..." | tee -a $LOG
 
