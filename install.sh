@@ -8,7 +8,7 @@ sudo chown -R denodo:denodo "$LOG"
 set -uo pipefail
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 
-if [ 1 eq 2 ] #VFG Debug
+if [ 1 == 2 ]; then #VFG Debug
   echo "1️⃣ - Checking the input parameters and loading env variables" | tee -a $LOG
 
   # ---- 1. Load environment variables if present
@@ -200,8 +200,7 @@ if [ 1 eq 2 ] #VFG Debug
     exit 1
   fi
 
-else 
-#VFG Debug
+
   # Postgres DB Config
   echo "1️⃣3️⃣ - Create Denodo Database" | tee -a $LOG
   DENODO_PG_USER=${DENODO_PG_USER:-"denodo"}
@@ -228,15 +227,16 @@ else
   fi
 
   sudo -u postgres psql -c "ALTER ROLE $DENODO_PG_USER CREATEDB"
-
+else 
+#VFG Debug
 
   echo "1️⃣1️⃣ - Configure Python virtual environlent" | tee -a $LOG
   cd ~
 
   # Try to find any python3 version
-  py_cmd=$(command -v python3 || true)
+  py_cmd=$(command -v python3.12 || true)
   if [ -z "$py_cmd" ]; then
-      echo "💩 - Python 3 is not installed" | tee -a $LOG
+      echo "💩 - Python 3.12 is required but not installed" | tee -a $LOG
       exit 1
   fi
   # Get the version number
@@ -247,38 +247,46 @@ else
   py_minor=$(echo "$py_ver_str" | cut -d. -f2)
   py_ver=$py_major.$py_minor
 
-  # Check if version >= 3.10
-  if [ "$py_major" -lt 3 ] || { [ "$py_major" -eq 3 ] && [ "$py_minor" -lt 10 ]; }; then
-      echo "💩 - Please install Python 3.10 or higher (you have $py_ver_str)" | tee -a $LOG
+
+  # Ensure it's really 3.12
+  if [ "$py_major" -ne 3 ] || [ "$py_minor" -ne 12 ]; then
+      echo "💩 - Python 3.12.x required (you have $py_ver_str)" | tee -a $LOG
       exit 1
   fi
 
-  echo "✅ Python version $py_ver is OK" | tee -a $LOG
+  echo "✅ Python version $py_ver_str is OK" | tee -a $LOG
 
-  python=python$py_ver
+  python="$py_cmd"
 
-  venv_cfg="denodo_env/pyvenv.cfg"
-  if [[ -f "${venv_cfg}" && "$(grep -c version\ =\ ${py_ver} ${venv_cfg})" -eq 0 ]]; then
-    echo "💩 - Installed virtual env does not match needed version: remove it" | tee -a $LOG
-    sudo rm -rf "denodo_env"
+  # ---- Virtual environment name ----
+  VENV_DIR="venv_denodo"
+  venv_cfg="$VENV_DIR/pyvenv.cfg"
+
+  # Remove if wrong version
+  if [[ -f "${venv_cfg}" && "$(grep -c "version = ${py_ver}" ${venv_cfg})" -eq 0 ]]; then
+    echo "💩 - Installed virtual env does not match Python ${py_ver}, removing it" | tee -a $LOG
+    rm -rf "$VENV_DIR"
   fi
-  if [ ! -d "denodo_env" ]; then
-    echo "Creating Python ${py_ver} virtual environment" | tee -a $LOG
-    ${python} -m venv denodo_env
+
+  # Create venv if missing
+  if [ ! -d "$VENV_DIR" ]; then
+    echo "Creating Python ${py_ver} virtual environment ($VENV_DIR)" | tee -a $LOG
+    $python -m venv "$VENV_DIR"
   fi
 
   echo "Updating pip" | tee -a $LOG
-  echo "source denodo_env/bin/activate" | tee -a $LOG
-  source denodo_env/bin/activate
+  echo "source $VENV_DIR/bin/activate" | tee -a $LOG
+  source "$VENV_DIR/bin/activate"
+
   python -m pip install --upgrade pip
 
-  # Start with wheel which is required to compile some of the other requirements
+  # Required for builds
   python -m pip install --no-cache-dir wheel
+
   echo "PWD: $(pwd)" | tee -a $LOG
   ls -l aw_box/requirements.txt
+
   python -m pip install --no-cache-dir -r aw_box/requirements.txt
-
-
 
 
   # VFG work to continue here
