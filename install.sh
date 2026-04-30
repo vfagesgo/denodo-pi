@@ -253,7 +253,7 @@ else
   fi
 
   echo "✅ Python version $py_ver is OK" | tee -a $LOG
-
+  python="$py_cmd"
   # ---- Virtual environment name ----
   VENV_DIR="venv_denodo"
   venv_cfg="$VENV_DIR/pyvenv.cfg"
@@ -264,19 +264,19 @@ else
   fi
   if [ ! -d "$VENV_DIR" ]; then
     echo "Creating Python ${py_ver} virtual environment" | tee -a $LOG
-    ${python} -m venv "$VENV_DIR"
+    $python -m venv "$VENV_DIR"
   fi
 
   echo "Updating pip" | tee -a $LOG
   echo "source $VENV_DIR/bin/activate" | tee -a $LOG
   source "$VENV_DIR/bin/activate"
-  python -m pip install --upgrade pip
+  $python -m pip install --upgrade pip
 
   # Start with wheel which is required to compile some of the other requirements
-  python -m pip install --no-cache-dir wheel
+  $python -m pip install --no-cache-dir wheel
   echo "PWD: $(pwd)" | tee -a $LOG
   ls -l aw_box/requirements.txt
-  python -m pip install --no-cache-dir -r aw_box/requirements.txt
+  $python -m pip install --no-cache-dir -r aw_box/requirements.txt
 
 
 
