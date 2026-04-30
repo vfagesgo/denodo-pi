@@ -161,18 +161,18 @@ for PG_CONF in "${pg_conf_files[@]}"; do
   fi
 done
 
-if [ "$ci_chroot" -eq 1 ]; then
-  for conf in "${pg_hba_files[@]}"; do
-    version=$(echo "$conf" | cut -d/ -f4)
-    name=$(echo "$conf" | cut -d/ -f5)
 
-    sudo pg_ctlcluster "$version" "$name" restart 
-  done
-else
-  if [[ -z "${test:-}" ]]; then
-    sudo systemctl restart postgresql
-  fi
+for conf in "${pg_hba_files[@]}"; do
+  version=$(echo "$conf" | cut -d/ -f4)
+  name=$(echo "$conf" | cut -d/ -f5)
+
+  sudo pg_ctlcluster "$version" "$name" restart 
+done
+
+if [[ -z "${test:-}" ]]; then
+  sudo systemctl restart postgresql
 fi
+
 
 echo "- Configure PostgreSQL listen_addresses" | tee -a $LOG
 
@@ -226,7 +226,7 @@ sudo -u postgres psql -c "ALTER ROLE $DENODO_PG_USER CREATEDB"
 
 
 echo "1️⃣1️⃣ - Configure Python virtual environlent" | tee -a $LOG
-cd ${root_dir}
+cd ~
 
 # Try to find any python3 version
 py_cmd=$(command -v python3 || true)
