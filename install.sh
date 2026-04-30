@@ -199,7 +199,9 @@ if [ 1 eq 2 ] #VFG Debug
     echo "Failed to set listen_addresses" | tee -a $LOG
     exit 1
   fi
-else  #VFG Debug
+
+else 
+#VFG Debug
   # Postgres DB Config
   echo "1️⃣3️⃣ - Create Denodo Database" | tee -a $LOG
   DENODO_PG_USER=${DENODO_PG_USER:-"denodo"}
