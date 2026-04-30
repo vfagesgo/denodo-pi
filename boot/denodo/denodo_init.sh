@@ -46,7 +46,7 @@ sudo apt install git -y
 # ---- 5. Install Denodo-Pi repository
 
 # Defaults (in case .env is missing values)
-GITHUB_REPO=${GITHUB_REPO:-"/vfagesgo/denodo-pi.git"}
+GITHUB_REPO=${GITHUB_REPO:-""}
 GITHUB_TOKEN=${GITHUB_TOKEN:-""}
 INSTALL_DIR=${INSTALL_DIR:-"/opt/denodo-pi"}
 BRANCH=${BRANCH:-"main"}
