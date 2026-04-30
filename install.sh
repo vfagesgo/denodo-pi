@@ -270,13 +270,13 @@ else
   echo "Updating pip" | tee -a $LOG
   echo "source $VENV_DIR/bin/activate" | tee -a $LOG
   source "$VENV_DIR/bin/activate"
-  $python -m pip install --upgrade pip
+  $VENV_DIR/bin/python -m pip install --upgrade pip
 
   # Start with wheel which is required to compile some of the other requirements
-  $python -m pip install --no-cache-dir wheel
+  $VENV_DIR/bin/python -m pip install --no-cache-dir wheel
   echo "PWD: $(pwd)" | tee -a $LOG
   ls -l aw_box/requirements.txt
-  $python -m pip install --no-cache-dir -r aw_box/requirements.txt
+  $VENV_DIR/bin/python -m pip install --no-cache-dir -r aw_box/requirements.txt
 
 
 
