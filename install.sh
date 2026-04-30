@@ -264,12 +264,12 @@ else
   fi
   if [ ! -d "$VENV_DIR" ]; then
     echo "Creating Python ${py_ver} virtual environment" | tee -a $LOG
-    ${python} -m venv $VENV_DIR
+    ${python} -m venv "$VENV_DIR"
   fi
 
   echo "Updating pip" | tee -a $LOG
   echo "source $VENV_DIR/bin/activate" | tee -a $LOG
-  source $VENV_DIR/bin/activate
+  source "$VENV_DIR/bin/activate"
   python -m pip install --upgrade pip
 
   # Start with wheel which is required to compile some of the other requirements
