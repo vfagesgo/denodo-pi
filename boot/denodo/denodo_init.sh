@@ -46,7 +46,7 @@ sudo apt install git -y
 # ---- 5. Install Denodo-Pi repository
 
 # Defaults (in case .env is missing values)
-GITHUB_REPO=${GITHUB_REPO:-""}
+GITHUB_REPO=${GITHUB_REPO:-"/vfagesgo/denodo-pi.git"}
 GITHUB_TOKEN=${GITHUB_TOKEN:-""}
 INSTALL_DIR=${INSTALL_DIR:-"/opt/denodo-pi"}
 BRANCH=${BRANCH:-"main"}
@@ -65,15 +65,19 @@ if [ ! -d "$INSTALL_DIR/.git" ]; then
   chown -R denodo:denodo "$INSTALL_DIR"
   
 else
-  echo "[INIT] Updating repository..." | tee -a $LOG
-  cd "$INSTALL_DIR"
-  git pull
+  echo "[INIT] Updating repository (force reset)..." | tee -a "$LOG"
+  cd "$INSTALL_DIR" || exit 1
+
+  git fetch origin
+  git reset --hard "origin/$BRANCH"
+  git clean -fd
 fi
 
 # Example: run install script if exists
 if [ -f "$INSTALL_DIR/install.sh" ]; then
   echo "[INIT] Running install.sh as Denodo" | tee -a $LOG
   chmod +x "$INSTALL_DIR/install.sh"
+  sudo chmod +x "$INSTALL_DIR/tools/*.sh"
   sudo -H -u denodo bash "$INSTALL_DIR/install.sh"
 fi
 

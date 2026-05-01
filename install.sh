@@ -43,7 +43,7 @@ fi
 
 
 
-if [ 1 == 1 ]; then #VFG Debug
+if [ 1 == 2 ]; then #VFG Debug
   # Install Necessary Packages:
   echo "4️⃣ - Update the necessary packages" | tee -a $LOG
   sudo apt update -y 
