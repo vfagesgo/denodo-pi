@@ -148,6 +148,7 @@ if [ 1 == 1 ]; then #VFG Debug
 
     # Backup once
     if [ ! -f "$PG_CONF.orig" ]; then
+      echo "- Backup PostgreSQL: $PG_CONF" | tee -a $LOG
       sudo cp "$PG_CONF" "$PG_CONF.orig"
     fi
 
