@@ -176,35 +176,6 @@ if [ 1 == 1 ]; then #VFG Debug
   echo "- Restart PostgreSQL" | tee -a $LOG
   sudo systemctl restart postgresql
 
-
-
-  echo "- Configure PostgreSQL listen_addresses" | tee -a $LOG
-
-  PG_CONF="/etc/postgresql/*/main/postgresql.conf"
-
-  # Ensure config file exists
-  if [ ! -f "$PG_CONF" ]; then
-    echo "PostgreSQL config not found: $PG_CONF" | tee -a $LOG
-    exit 1
-  fi
-
-  # Backup once (idempotent)
-  if [ ! -f "$PG_CONF.orig" ]; then
-    sudo cp "$PG_CONF" "$PG_CONF.orig"
-  fi
-
-  # Set listen_addresses to '*'
-  sudo sed -i -E \
-    "s|^[[:space:]]*#?[[:space:]]*listen_addresses[[:space:]]*=.*|listen_addresses = '*'|" \
-    "$PG_CONF"
-
-  # Verify change
-  if ! grep -q "^listen_addresses = '\\*'" "$PG_CONF"; then
-    echo "Failed to set listen_addresses" | tee -a $LOG
-    exit 1
-  fi
-
-
   # Postgres DB Config
   echo "1️⃣3️⃣ - Create Denodo Database" | tee -a $LOG
   DENODO_PG_USER=${DENODO_PG_USER:-"denodo"}
