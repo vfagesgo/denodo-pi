@@ -152,10 +152,11 @@ if [ 1 == 1 ]; then #VFG Debug
     fi
 
     # Set listen_addresses = '*'
+    echo "- Update PostgreSQL: $PG_CONF" | tee -a $LOG
     sudo sed -i -E \
       "s|^[[:space:]]*#?[[:space:]]*listen_addresses[[:space:]]*=.*|listen_addresses = '*'|" \
       "$PG_CONF"
-
+    
     # Verify
     if ! grep -q "^listen_addresses = '\\*'" "$PG_CONF"; then
       echo "Failed to update listen_addresses in $PG_CONF" | tee -a $LOG
@@ -171,9 +172,9 @@ if [ 1 == 1 ]; then #VFG Debug
     sudo pg_ctlcluster "$version" "$name" restart 
   done
 
-  if [[ -z "${test:-}" ]]; then
-    sudo systemctl restart postgresql
-  fi
+  echo "- Restart PostgreSQL" | tee -a $LOG
+  sudo systemctl restart postgresql
+
 
 
   echo "- Configure PostgreSQL listen_addresses" | tee -a $LOG
