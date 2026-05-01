@@ -43,7 +43,7 @@ fi
 
 
 
-if [ 1 == 2 ]; then #VFG Debug
+if [ 1 == 1 ]; then #VFG Debug
   # Install Necessary Packages:
   echo "4️⃣ - Update the necessary packages" | tee -a $LOG
   sudo apt update -y 
@@ -52,7 +52,7 @@ if [ 1 == 2 ]; then #VFG Debug
   sudo apt install -y libglib2.0-dev python3-dev build-essential 
 
   # Install lates PGSql
-  sudo apt install -y wget gnupg lsb-release 
+  sudo apt install -y wget gnupg ca-certificates lsb-release curl
 
 
   echo "5️⃣ - Install Postgres DB" | tee -a $LOG
@@ -203,7 +203,21 @@ if [ 1 == 2 ]; then #VFG Debug
 
   sudo -u postgres psql -c "ALTER ROLE $DENODO_PG_USER CREATEDB"
 
-else 
+  # Setup Java 17
+  echo "1️⃣1️⃣ - Configure Zulu Java 17" | tee -a $LOG
+  curl -s https://repos.azul.com/azul-repo.key \
+  | sudo gpg --dearmor -o /usr/share/keyrings/azul.gpg
+
+  echo "deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main" \
+  | sudo tee /etc/apt/sources.list.d/zulu.list
+
+  sudo chmod 644 /usr/share/keyrings/azul.gpg  
+  sudo apt update
+
+  sudo apt install zulu17-jdk
+
+
+#else 
 #VFG Debug
   echo "1️⃣1️⃣ - Configure Python virtual environlent" | tee -a $LOG
   cd ~

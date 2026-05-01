@@ -10,6 +10,6 @@ network:
       dhcp4: true
       regulatory-domain: "FR"
       access-points:
-        "denodo":
-          password: ""
+        "DIMV":
+          password: "1l1anaDal1a"
       optional: true
