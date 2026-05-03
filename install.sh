@@ -49,7 +49,8 @@ if [ 1 == 2 ]; then #VFG Debug
   sudo apt update -y 
   sudo apt upgrade -y 
 
-  sudo apt install -y libglib2.0-dev python3-dev build-essential 
+  sudo apt install -y libglib2.0-dev build-essential 
+  sudo apt install -y python3.11 python3.11-venv python3.11-dev
 
   # Install lates PGSql
   sudo apt install -y wget gnupg ca-certificates lsb-release curl
@@ -281,6 +282,34 @@ else
   echo "1️⃣1️⃣ - Configure Python virtual environlent" | tee -a $LOG
   cd ~
 
+  # Install pyenv
+  curl -fsSL https://pyenv.run | bash
+
+  # Add pyenv to bashrc (idempotent: won't duplicate)
+  # Add to bashrc ONLY if not already present
+  if ! grep -q 'pyenv init' "$HOME/.bashrc"; then
+    {
+      echo ''
+      echo '# Pyenv configuration'
+      echo 'export PATH="$HOME/.pyenv/bin:$PATH"'
+      echo 'eval "$(pyenv init -)"'
+      echo 'eval "$(pyenv virtualenv-init -)"'
+    } >> "$HOME/.bashrc"
+  fi
+
+  # 👉 Make pyenv available in THIS script (important)
+  export PATH="$HOME/.pyenv/bin:$PATH"
+  eval "$(~/.pyenv/bin/pyenv init -)"
+  eval "$(~/.pyenv/bin/pyenv virtualenv-init -)"
+
+  # Install Python
+  pyenv install -s 3.11.9
+  pyenv global 3.11.9
+
+  # Verify
+  python --version
+
+  exit 1
   # Try to find any python3 version
   py_cmd=$(command -v python3 || true)
   if [ -z "$py_cmd" ]; then
