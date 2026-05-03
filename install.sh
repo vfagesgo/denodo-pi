@@ -250,19 +250,20 @@ else
 #VFG Debug
   # Install Denodo AISDK #
   echo "1️⃣1️⃣ - Install Denodo AISDK" | tee -a $LOG
-  GITHUB_REPO_URL="https://github.com/denodo/denodo-ai-sdk"
+  GITHUB_REPO_URL="https://github.com/denodo/denodo-ai-sdk.git"
   BRANCH="main"
 
   AISDK_INSTALL_DIR="/opt/denodo-aisdk"
   echo "[INIT] Repo: denodo-ai-sdk" | tee -a $LOG
   echo "[INIT] Install dir: $AISDK_INSTALL_DIR" | tee -a $LOG
+  echo "[INIT] Branch: $BRANCH" | tee -a $LOG
   sudo mkdir -p "$AISDK_INSTALL_DIR"
   sudo chown -R denodo:denodo "$AISDK_INSTALL_DIR"
 
   # Clone or update repo
   if [ ! -d "$AISDK_INSTALL_DIR/.git" ]; then
     echo "[INIT] Cloning denodo-ai-sdk repository..." | tee -a $LOG
-    git clone -b "$GITHUB_REPO_URL" "$AISDK_INSTALL_DIR"
+    git clone -b "$BRANCH" "$GITHUB_REPO_URL" "$AISDK_INSTALL_DIR"
     chown -R denodo:denodo "$AISDK_INSTALL_DIR"
     
   else
