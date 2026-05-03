@@ -366,7 +366,7 @@ else
   gfortran \
   libopenblas-dev \
   liblapack-dev \
-  libatlas-base-dev \
+  libopenblas-dev liblapack-dev \
   libxml2-dev \
   libxslt1-dev \
   libffi-dev \
