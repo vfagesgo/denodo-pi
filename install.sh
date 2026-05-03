@@ -325,11 +325,63 @@ else
   $VENV_DIR/bin/python -m pip install --no-cache-dir wheel
   echo "PWD: $(pwd)" | tee -a $LOG
 
-  sudo apt install python3-numpy python3-pandas
+ 
   cd "$AISDK_INSTALL_DIR" || exit 1
   echo "PWD: $(pwd)" | tee -a $LOG
   pip install --upgrade pip
-  /home/denodo/$VENV_DIR/bin/python -m pip install --no-cache-dir -r requirements.txt
+  echo "Installing AISDK Requirements" | tee -a $LOG
+
+  sudo apt update
+
+  sudo apt install -y \
+  python3-numpy \
+  python3-scipy \
+  python3-pandas \
+  python3-matplotlib \
+  python3-lxml \
+  python3-pil \
+  python3-psycopg2 \
+  python3-cryptography \
+  python3-bcrypt \
+  python3-yaml \
+  python3-requests \
+  python3-urllib3 \
+  python3-dateutil \
+  python3-tz \
+  python3-click \
+  python3-jinja2 \
+  python3-markupsafe \
+  python3-werkzeug \
+  python3-flask \
+  python3-sqlalchemy \
+  python3-greenlet \
+  python3-psutil \
+  python3-packaging \
+  python3-setuptools \
+  python3-wheel \
+  python3-dev \
+  build-essential \
+  gcc \
+  g++ \
+  gfortran \
+  libopenblas-dev \
+  liblapack-dev \
+  libatlas-base-dev \
+  libxml2-dev \
+  libxslt1-dev \
+  libffi-dev \
+  libssl-dev \
+  libjpeg-dev \
+  zlib1g-dev \
+  libpng-dev \
+  libfreetype6-dev \
+  libpq-dev \
+  libgeos-dev \
+  libhdf5-dev
+
+  pip install --upgrade pip setuptools wheel
+  sudo apt install -y rustc cargo
+  /home/denodo/$VENV_DIR/bin/python -m pip install --no-cache-dir --prefer-binary -r requirements.txt
 
 
 
