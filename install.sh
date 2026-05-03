@@ -263,7 +263,7 @@ else
   # Clone or update repo
   if [ ! -d "$AISDK_INSTALL_DIR/.git" ]; then
     echo "[INIT] Cloning denodo-ai-sdk repository..." | tee -a $LOG
-    git clone -b "$GITHUB_REPO_URL" "$AISDK_INSTALL_DIR"
+    git clone "$GITHUB_REPO_URL" "$AISDK_INSTALL_DIR"
     chown -R denodo:denodo "$AISDK_INSTALL_DIR"
     
   else
