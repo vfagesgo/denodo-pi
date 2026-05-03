@@ -284,32 +284,7 @@ else
 
 
   sudo apt install -y \
-  python3-numpy \
-  python3-scipy \
-  python3-pandas \
-  python3-matplotlib \
-  python3-lxml \
-  python3-pil \
-  python3-psycopg2 \
-  python3-cryptography \
-  python3-bcrypt \
-  python3-yaml \
-  python3-requests \
-  python3-urllib3 \
-  python3-dateutil \
-  python3-tz \
-  python3-click \
-  python3-jinja2 \
-  python3-markupsafe \
-  python3-werkzeug \
-  python3-flask \
-  python3-sqlalchemy \
-  python3-greenlet \
-  python3-psutil \
-  python3-packaging \
-  python3-setuptools \
-  python3-wheel \
-  python3-dev \
+  python3-venv python3-full \
   build-essential \
   gcc \
   g++ \
@@ -331,7 +306,7 @@ else
 
   pip install --upgrade pip setuptools wheel
   sudo apt install -y rustc cargo
-  
+
   # Install pyenv
   sudo rm -rf ~/.pyenv
   curl -fsSL https://pyenv.run | bash
