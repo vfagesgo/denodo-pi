@@ -250,7 +250,7 @@ else
 #VFG Debug
   # Install Denodo AISDK #
   echo "1️⃣1️⃣ - Install Denodo AISDK" | tee -a $LOG
-  GITHUB_REPO_URL="https://github.com$/denodo/denodo-ai-sdk"
+  GITHUB_REPO_URL="https://github.com/denodo/denodo-ai-sdk"
   BRANCH="main"
 
   AISDK_INSTALL_DIR="/opt/denodo-aisdk"
