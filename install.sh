@@ -324,9 +324,11 @@ else
   # Start with wheel which is required to compile some of the other requirements
   $VENV_DIR/bin/python -m pip install --no-cache-dir wheel
   echo "PWD: $(pwd)" | tee -a $LOG
-  
+
+  sudo apt install python3-numpy python3-pandas
   cd "$AISDK_INSTALL_DIR" || exit 1
   echo "PWD: $(pwd)" | tee -a $LOG
+  pip install --upgrade pip
   /home/denodo/$VENV_DIR/bin/python -m pip install --no-cache-dir -r requirements.txt
 
 
