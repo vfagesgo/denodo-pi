@@ -257,7 +257,8 @@ else
   echo "[INIT] Repo: denodo-ai-sdk" | tee -a $LOG
   echo "[INIT] Install dir: $AISDK_INSTALL_DIR" | tee -a $LOG
   echo "[INIT] Branch: $BRANCH" | tee -a $LOG
-  mkdir -p "$AISDK_INSTALL_DIR"
+  sudo mkdir -p "$AISDK_INSTALL_DIR"
+  sudo chown -R denodo:denodo "$AISDK_INSTALL_DIR"
 
   # Clone or update repo
   if [ ! -d "$AISDK_INSTALL_DIR/.git" ]; then
