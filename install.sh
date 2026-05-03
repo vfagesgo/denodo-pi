@@ -324,8 +324,10 @@ else
   # Start with wheel which is required to compile some of the other requirements
   $VENV_DIR/bin/python -m pip install --no-cache-dir wheel
   echo "PWD: $(pwd)" | tee -a $LOG
+  
   cd "$AISDK_INSTALL_DIR" || exit 1
-  $VENV_DIR/bin/python -m pip install --no-cache-dir -r requirements.txt
+  echo "PWD: $(pwd)" | tee -a $LOG
+  /home/denodo/$VENV_DIR/bin/python -m pip install --no-cache-dir -r requirements.txt
 
 
 
