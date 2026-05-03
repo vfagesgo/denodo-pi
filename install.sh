@@ -43,7 +43,7 @@ fi
 
 
 
-if [ 1 == 1 ]; then #VFG Debug
+if [ 1 == 2 ]; then #VFG Debug
   # Install Necessary Packages:
   echo "4️⃣ - Update the necessary packages" | tee -a $LOG
   sudo apt update -y 
@@ -212,13 +212,71 @@ if [ 1 == 1 ]; then #VFG Debug
   | sudo tee /etc/apt/sources.list.d/zulu.list
 
   sudo chmod 644 /usr/share/keyrings/azul.gpg  
-  sudo apt update
+  sudo apt update -y
 
-  sudo apt install zulu17-jdk
+  sudo apt install -y zulu17-jdk
 
 
-#else 
+
+
+  # Install Denodo 9 #
+  echo "1️⃣1️⃣ - Instrall Denodo 9" | tee -a $LOG
+  DENODO_INSTALL="/home/denodo/denodo-install-9"
+  unset DISPLAY
+  cd "$DENODO_INSTALL"
+  
+  JAVA_BIN=$(readlink -f $(which java) || true)
+  JAVA_HOME=$(dirname $(dirname "$JAVA_BIN"))
+
+  ln -s "$JAVA_HOME" jre
+  # Configure for current session
+  export JAVA_HOME="$JAVA_HOME"
+  export PATH="$JAVA_HOME/bin:$PATH"
+  
+  chmod +x installer_cli.sh
+
+  DENODO_LIC=${DENODO_LIC:-"denodo-developer-lic-9.lic"}
+
+  sudo cp "/boot/firmware/denodo/$DENODO_LIC" "$DENODO_INSTALL/denodo-developer-lic-9.lic"
+  sudo chown denodo:denodo "$DENODO_INSTALL/denodo-developer-lic-9.lic"
+  #./installer_cli.sh install
+  sudo mkdir /opt/denodo-9
+  sudo chown -R denodo:denodo /opt/denodo-9
+
+
+  ./installer_cli.sh install --autoinstaller response_file_9_0.xml | tee -a $LOG
+  ####################
+else 
 #VFG Debug
+  # Install Denodo AISDK #
+  echo "1️⃣1️⃣ - Install Denodo AISDK" | tee -a $LOG
+  GITHUB_REPO_URL="https://github.com$/denodo/denodo-ai-sdk"
+  BRANCH="main"
+
+  AISDK_INSTALL_DIR="/opt/denodo-aisdk"
+  echo "[INIT] Repo: denodo-ai-sdk" | tee -a $LOG
+  echo "[INIT] Install dir: $AISDK_INSTALL_DIR" | tee -a $LOG
+  echo "[INIT] Branch: $BRANCH" | tee -a $LOG
+  mkdir -p "$AISDK_INSTALL_DIR"
+
+  # Clone or update repo
+  if [ ! -d "$AISDK_INSTALL_DIR/.git" ]; then
+    echo "[INIT] Cloning denodo-ai-sdk repository..." | tee -a $LOG
+    git clone -b "$BRANCH" "$GITHUB_REPO_URL" "$AISDK_INSTALL_DIR"
+    chown -R denodo:denodo "$AISDK_INSTALL_DIR"
+    
+  else
+    echo "[INIT] Updating denodo-ai-sdk repository (force reset)..." | tee -a "$LOG"
+    cd "$AISDK_INSTALL_DIR" || exit 1
+
+    git fetch origin
+    git reset --hard "origin/$BRANCH"
+    git clean -fd
+  fi
+
+
+
+
   echo "1️⃣1️⃣ - Configure Python virtual environlent" | tee -a $LOG
   cd ~
 
@@ -265,23 +323,9 @@ if [ 1 == 1 ]; then #VFG Debug
   # Start with wheel which is required to compile some of the other requirements
   $VENV_DIR/bin/python -m pip install --no-cache-dir wheel
   echo "PWD: $(pwd)" | tee -a $LOG
-  ls -l aw_box/requirements.txt
-  $VENV_DIR/bin/python -m pip install --no-cache-dir -r aw_box/requirements.txt
+  cd "$AISDK_INSTALL_DIR" || exit 1
+  $VENV_DIR/bin/python -m pip install --no-cache-dir -r requirements.txt
 
-
-
-
-  # VFG work to continue here
-
-  cd `dirname "$0"`
-  root_dir=`pwd`
-  owner=`stat -c '%U' ${root_dir}`
-  uid=`stat -c '%u' ${root_dir}`
-  gid=`stat -c '%g' ${root_dir}`
-
-  echo "9️⃣ - ..." | tee -a $LOG
-
-  echo "🔟 - ..." | tee -a $LOG
 
 
 

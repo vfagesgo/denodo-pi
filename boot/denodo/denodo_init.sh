@@ -77,7 +77,6 @@ fi
 if [ -f "$INSTALL_DIR/install.sh" ]; then
   echo "[INIT] Running install.sh as Denodo" | tee -a $LOG
   chmod +x "$INSTALL_DIR/install.sh"
-  sudo chmod +x "$INSTALL_DIR/tools/*.sh"
   sudo -H -u denodo bash "$INSTALL_DIR/install.sh"
 fi
 
