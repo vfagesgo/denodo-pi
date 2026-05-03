@@ -283,6 +283,7 @@ else
   cd ~
 
   # Install pyenv
+  sudo rm -rf ~/.pyenv
   curl -fsSL https://pyenv.run | bash
 
   # Add pyenv to bashrc (idempotent: won't duplicate)
