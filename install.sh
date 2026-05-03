@@ -251,7 +251,7 @@ else
   # Install Denodo AISDK #
   echo "1️⃣1️⃣ - Install Denodo AISDK" | tee -a $LOG
   GITHUB_REPO_URL="https://github.com/denodo/denodo-ai-sdk.git"
-  BRANCH="main"
+
 
   AISDK_INSTALL_DIR="/opt/denodo-aisdk"
   echo "[INIT] Repo: denodo-ai-sdk" | tee -a $LOG
@@ -263,7 +263,7 @@ else
   # Clone or update repo
   if [ ! -d "$AISDK_INSTALL_DIR/.git" ]; then
     echo "[INIT] Cloning denodo-ai-sdk repository..." | tee -a $LOG
-    git clone -b "$BRANCH" "$GITHUB_REPO_URL" "$AISDK_INSTALL_DIR"
+    git clone -b "$GITHUB_REPO_URL" "$AISDK_INSTALL_DIR"
     chown -R denodo:denodo "$AISDK_INSTALL_DIR"
     
   else
