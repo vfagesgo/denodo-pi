@@ -271,7 +271,7 @@ else
     cd "$AISDK_INSTALL_DIR" || exit 1
 
     git fetch origin
-    git reset --hard "origin/$BRANCH"
+    git reset --hard "origin"
     git clean -fd
   fi
 
