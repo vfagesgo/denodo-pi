@@ -394,11 +394,10 @@ else
   echo "Installing ${#available_packages[@]} package(s)..." | tee -a $LOG
   sudo apt-get install -y "${available_packages[@]}"
 
-
-
   sudo apt install -y rustc cargo
 
   # Install pyenv
+  echo "[INIT] Install pyenv" | tee -a $LOG
   sudo rm -rf ~/.pyenv
   curl -fsSL https://pyenv.run | bash
 
@@ -406,7 +405,7 @@ else
   # Add to bashrc ONLY if not already present
   if ! grep -q 'pyenv init' "$HOME/.bashrc"; then
     {
-      echo ''
+      echo '' 
       echo '# Pyenv configuration'
       echo 'export PATH="$HOME/.pyenv/bin:$PATH"'
       echo 'eval "$(pyenv init -)"'
@@ -420,8 +419,9 @@ else
   eval "$(~/.pyenv/bin/pyenv virtualenv-init -)"
 
   # Install Python
-  MAKE_OPTS="-j$(nproc)" pyenv install -s 3.12
-  pyenv global 3.12
+  echo "- Install python 3.11 in venv" | tee -a $LOG
+  MAKE_OPTS="-j$(nproc)" pyenv install -s 3.11
+  pyenv global 3.11
 
   # Verify
   python --version
