@@ -479,6 +479,7 @@ else
 
   sudo apt update
 
+  sed -i 's/^pysqlite3-binary/#pysqlite3-binary/' requirements.txt
   
   /home/denodo/$VENV_DIR/bin/python -m pip install --no-cache-dir --prefer-binary -r requirements.txt
 
