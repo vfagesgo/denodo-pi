@@ -312,7 +312,6 @@ else
     libgomp1
     libopenblas-dev
     liblapack-dev
-    libatlas-base-dev
     libjpeg-dev
     libpng-dev
     libfreetype6-dev
@@ -325,6 +324,7 @@ else
   )
 
   optional_native_packages=(
+    libatlas-base-dev
     libwebp-dev
     libblas-dev
   )
