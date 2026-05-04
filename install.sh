@@ -282,27 +282,122 @@ else
   echo "1️⃣1️⃣ - Configure Python virtual environlent" | tee -a $LOG
   cd ~
 
+  echo "- Pre-installs Debian/Raspberry Pi OS packages that reduce build time for this repo's Python requirements on a Raspberry Pi." | tee -a $LOG
 
-  sudo apt install -y \
-  python3-venv python3-full \
-  build-essential \
-  gcc \
-  g++ \
-  gfortran \
-  libopenblas-dev \
-  liblapack-dev \
-  libopenblas-dev liblapack-dev \
-  libxml2-dev \
-  libxslt1-dev \
-  libffi-dev \
-  libssl-dev \
-  libjpeg-dev \
-  zlib1g-dev \
-  libpng-dev \
-  libfreetype6-dev \
-  libpq-dev \
-  libgeos-dev \
-  libhdf5-dev
+  base_packages=(
+    build-essential
+    pkg-config
+    cmake
+    gfortran
+    gcc
+    g++
+    make
+    rustc
+    cargo
+    python3-dev
+    python3-venv
+    python3-pip
+    libffi-dev
+    libssl-dev
+    libsqlite3-dev
+    sqlite3
+    zlib1g-dev
+    libbz2-dev
+    liblzma-dev
+    libreadline-dev
+    libxml2-dev
+    libxslt1-dev
+    libpq-dev
+    libgeos-dev
+    libgomp1
+    libopenblas-dev
+    liblapack-dev
+    libatlas-base-dev
+    libjpeg-dev
+    libpng-dev
+    libfreetype6-dev
+    libharfbuzz-dev
+    libfribidi-dev
+    liblcms2-dev
+    libopenjp2-7-dev
+    libtiff5-dev
+    tk-dev
+  )
+
+  optional_native_packages=(
+    libwebp-dev
+    libblas-dev
+  )
+
+  python_packages=(
+    python3-numpy
+    python3-scipy
+    python3-pandas
+    python3-matplotlib
+    python3-lxml
+    python3-pil
+    python3-psutil
+    python3-yaml
+    python3-requests
+    python3-lz4
+    python3-bs4
+    python3-dateutil
+    python3-kiwisolver
+    python3-fonttools
+    python3-packaging
+    python3-click
+    python3-cryptography
+    python3-bcrypt
+    python3-httptools
+    python3-websockets
+    python3-greenlet
+    python3-sqlalchemy
+    python3-psycopg2
+    python3-pyarrow
+    python3-shapely
+    python3-orjson
+  )
+
+  available_packages=()
+  missing_packages=()
+
+  add_if_available() {
+    local pkg="$1"
+    if apt-cache show "$pkg" >/dev/null 2>&1; then
+      available_packages+=("$pkg")
+    else
+      missing_packages+=("$pkg")
+    fi
+  }
+
+  echo "- Refreshing apt metadata..." | tee -a $LOG
+  sudo apt-get update
+
+  echo "- Collecting available packages..." | tee -a $LOG
+  for pkg in "${base_packages[@]}"; do
+    add_if_available "$pkg"
+  done
+
+  for pkg in "${optional_native_packages[@]}"; do
+    add_if_available "$pkg"
+  done
+
+
+  for pkg in "${python_packages[@]}"; do
+    add_if_available "$pkg"
+  done
+
+
+  if [[ "${#available_packages[@]}" -eq 0 ]]; then
+    echo "No installable apt packages were found." | tee -a $LOG
+  fi
+
+  echo "Installing ${#available_packages[@]} package(s)..." | tee -a $LOG
+  sudo apt-get install -y "${available_packages[@]}"
+
+  echo
+  echo "Installed packages:" | tee -a $LOG
+
 
   pip install --upgrade pip setuptools wheel
   sudo apt install -y rustc cargo
@@ -329,8 +424,8 @@ else
   eval "$(~/.pyenv/bin/pyenv virtualenv-init -)"
 
   # Install Python
-  pyenv install -s 3.11
-  pyenv global 3.11
+  pyenv install -s 3.12
+  pyenv global 3.12
 
   # Verify
   python --version
