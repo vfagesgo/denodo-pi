@@ -394,11 +394,8 @@ else
   echo "Installing ${#available_packages[@]} package(s)..." | tee -a $LOG
   sudo apt-get install -y "${available_packages[@]}"
 
-  echo
-  echo "Installed packages:" | tee -a $LOG
 
 
-  pip install --upgrade pip setuptools wheel
   sudo apt install -y rustc cargo
 
   # Install pyenv
@@ -476,7 +473,8 @@ else
  
   cd "$AISDK_INSTALL_DIR" || exit 1
   echo "PWD: $(pwd)" | tee -a $LOG
-  pip install --upgrade pip
+  
+  pip install --upgrade pip setuptools wheel
   echo "Installing AISDK Requirements" | tee -a $LOG
 
   sudo apt update
