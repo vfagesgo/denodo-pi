@@ -420,7 +420,7 @@ else
   eval "$(~/.pyenv/bin/pyenv virtualenv-init -)"
 
   # Install Python
-  pyenv install -s 3.12
+  MAKE_OPTS="-j$(nproc)" pyenv install -s 3.12
   pyenv global 3.12
 
   # Verify
