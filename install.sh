@@ -314,7 +314,7 @@ else
     liblapack-dev
     libjpeg-dev
     libpng-dev
-    libfreetype6-dev
+    libopenblas-dev
     libharfbuzz-dev
     libfribidi-dev
     liblcms2-dev
@@ -324,7 +324,6 @@ else
   )
 
   optional_native_packages=(
-    libatlas-base-dev
     libwebp-dev
     libblas-dev
   )
