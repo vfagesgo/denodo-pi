@@ -545,69 +545,15 @@ else
   # nginx wiring is still commented out, but the placeholder remains so the
   # script structure matches the intended install phases.
   log_section "15" "Configure nginx"
-  # sudo sed -e "s|/opt/aw_box|${root_dir}|g" < aw_box/aw_web/nginx-site.conf > /tmp/nginx-site.conf
-
-  # if [ $upgrade -eq 0 ]; then
-  #   if [ ! -e '/etc/nginx/sites-enabled/pyaw' ]; then
-  #     echo "Installing Nginx configuration file" | tee -a $LOG
-  #     if [ -h '/etc/nginx/sites-enabled/default' ]; then
-  #       sudo rm /etc/nginx/sites-enabled/default
-  #     fi
-  #     sudo mv /tmp/nginx-site.conf /etc/nginx/sites-enabled/pyaw
-  #     if [ $ci_chroot -eq 0 ]; then
-  #       if [[ -z "${test:-}" ]]; then
-  #         sudo systemctl restart nginx
-  #       fi
-  #     fi
-  #   else
-  #     diff -q '/etc/nginx/sites-enabled/pyaw' /tmp/nginx-site.conf >/dev/null || {
-  #       echo "Updating Nginx configuration file" | tee -a $LOG
-  #       sudo mv /tmp/nginx-site.conf /etc/nginx/sites-enabled/pyaw
-  #       if [ $ci_chroot -eq 0 ]; then
-  #         if [[ -z "${test:-}" ]]; then
-  #           sudo systemctl restart nginx
-  #         fi
-  #       fi
-  #     }
-  #   fi
-  # else
-  #   echo "Restarting Nginx" | tee -a $LOG
-  #   echo "Restarting Nginx - 10/15" #> /tmp/pyaw.upgrade | tee -a $LOG
-  #   if [ -e '/etc/nginx/sites-enabled/pyaw' ]; then
-  #     echo "Updating Nginx configuration file" | tee -a $LOG
-  #     sudo mv /tmp/nginx-site.conf /etc/nginx/sites-enabled/pyaw
-  #     if [[ -z "${test:-}" ]]; then
-  #       sudo systemctl restart nginx
-  #     fi
-  #   fi
-  # fi
-  # #sudo rm -f /tmp/nginx-site.conf
-
-
-
-  # #Configure the captive portal
-  # echo "1️⃣7️⃣ - Configuring the captive portal" | tee -a $LOG
-  # sudo cp aw_box/config/etc/dnsmasq.d/hotspot.conf /etc/dnsmasq.d/hotspot.conf
-  # if [[ -z "${test:-}" ]]; then
-  #   #sudo rm /boot/firmware/network-config
-  #   sudo systemctl restart dnsmasq
-  #   sudo iptables -t nat -A PREROUTING -i wlan0 -p tcp --dport 80 -j DNAT --to-destination 192.168.2.1:80
-  #   sudo iptables -t nat -A PREROUTING -i wlan0 -p tcp --dport 80 -j REDIRECT --to-port 80
-  #   sudo iptables-save
-
-  #   sudo netfilter-persistent save
-  # fi
-
-  # if [ $test -eq 1 ]; then
-  #   aw_env/bin/python aw_box/aw_web/manage.py runserver 0.0.0.0:8000
-  # fi
-
-  # #sudo sed -e "s|/opt/aw_box|${root_dir}|g" < nabboot/nabboot.py > /tmp/nabboot.py
-  # #sudo mv /tmp/nabboot.py /lib/systemd/system-shutdown/nabboot.py
-  # #sudo chown root /lib/systemd/system-shutdown/nabboot.py
-  # #sudo chmod +x /lib/systemd/system-shutdown/nabboot.py
-
-
+  
+  log_step "Installing Nginx configuration file"
+  
+  sudo rm /etc/nginx/sites-enabled/default
+  sudo mv /opt/denodo-pi/nginx.conf /etc/nginx/sites-enabled/pyaw
+  
+  log_step "Restarting Nginx" 
+  sudo systemctl restart nginx
+   
 
   # copy service files
   log_section "16" "Configuring the different services"
