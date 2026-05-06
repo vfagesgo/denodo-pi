@@ -624,7 +624,6 @@ else
     sudo systemctl unmask ${name}
 
     sudo systemctl enable ${name}
-    sudo systemctl start ${name}
   done
 
 fi
