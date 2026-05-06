@@ -617,7 +617,14 @@ else
     echo "Installing service ${name}"
     sudo cp $INSTALL_DIR/services/${name} /lib/systemd/system/${name}
     sudo chown root /lib/systemd/system/${name}
+
+    sudo systemctl daemon-reload
+
+    # 🔑 critical fix
+    sudo systemctl unmask ${name}
+
     sudo systemctl enable ${name}
+    sudo systemctl start ${name}
   done
 
 fi
