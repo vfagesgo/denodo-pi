@@ -548,7 +548,7 @@ else
   
   log_step "Installing Nginx configuration file"
   
-  sudo mv /opt/denodo-pi/nginx.conf /etc/nginx/sites-enabled/pyaw
+  sudo cp /opt/denodo-pi/nginx-site.conf /etc/nginx/sites-enabled/pyaw
   
   sudo chmod o+rx /opt
   sudo chmod o+rx /opt/denodo-pi
