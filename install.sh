@@ -551,6 +551,15 @@ else
   sudo rm /etc/nginx/sites-enabled/default
   sudo mv /opt/denodo-pi/nginx.conf /etc/nginx/sites-enabled/pyaw
   
+  sudo chmod o+rx /opt
+  sudo chmod o+rx /opt/denodo-pi
+  sudo chmod -R o+rx /opt/denodo-pi/www
+
+  sudo chgrp -R www-data /opt/denodo-pi/www
+  sudo chmod -R 750 /opt/denodo-pi/www
+
+  sudo usermod -aG www-data www-data
+  
   log_step "Restarting Nginx" 
   sudo systemctl restart nginx
    
