@@ -4,74 +4,104 @@ set -e
 LOG=/var/log/4-denodo_install.log
 sudo touch $LOG
 sudo chown -R denodo:denodo "$LOG"
-# This configures a bash environment with robust error handling and logging. Here's what each part does:
+# This installer makes privileged changes across the OS, so fail early on
+# missing variables, command failures inside pipelines, and unexpected errors.
 set -uo pipefail
 trap 's=$?; echo "$0: Error on line "$LINENO": $BASH_COMMAND"; exit $s' ERR
 
+log_section() {
+  echo "[SECTION $1] $2" | tee -a "$LOG"
+}
 
-echo "1️⃣ - Checking the input parameters and loading env variables" | tee -a $LOG
+log_step() {
+  echo "[STEP] $1" | tee -a "$LOG"
+}
 
-# ---- 1. Load environment variables if present
+
+# Section 01:
+# The installer can be driven by values stored on the boot partition so a
+# freshly provisioned Raspberry Pi can self-configure on first boot.
+# If that file is missing, the script falls back to its built-in defaults.
+log_section "01" "Check inputs and load environment variables"
+
+# Load environment variables from the boot partition when available.
 if [ -f /boot/firmware/denodo/denodo_config.env ]; then
-    echo "[INSTAL] Loading config from /boot/firmware/denodo/denodo_config.env" | tee -a $LOG
+    log_step "Loading config from /boot/firmware/denodo/denodo_config.env"
     set -o allexport
     source /boot/firmware/denodo/denodo_config.env
     set +o allexport
 else
-    echo "💩 - No config file found" | tee -a $LOG
+    log_step "No config file found; continuing with defaults"
 fi
 
-# Checking the hardware platform
-echo "2️⃣ - Verifying hardware compatibility" | tee -a $LOG
+
+INSTALL_DIR="/opt/denodo-pi"
+
+# Section 02:
+# The script is intended for a narrow Raspberry Pi target. This guard avoids
+# running the platform-specific setup on unsupported hardware unless the test
+# flag explicitly enables development mode.
+log_section "02" "Verify hardware compatibility"
 if [[ -z "${test:-}" ]]; then
   model=$(grep "^Model" /proc/cpuinfo ; true)
   if [[  "$model" != *"Raspberry Pi Zero"* && "$model" != *"Raspberry Pi 4"* ]]; then
-    # not a Pi Zero, Zero 2 or Pi 4
-    echo "💩 - Installation only planned on Raspberry Pi Zero or Pi 4, will cowardly exit" | tee -a $LOG
+    # Reject unsupported hardware before making system changes.
+    log_step "Unsupported hardware: installation is limited to Raspberry Pi Zero/Zero 2 or Pi 4"
     exit 1
   fi
 else
-  echo "⚠️ ci-chroot-test is set → running in dev mode (non-Pi system)" | tee -a $LOG
+  log_step "ci-chroot-test is set; running in development mode on a non-Pi system"
 fi
 
-echo "3️⃣ - Checking User used for install" | tee -a $LOG
+# Section 03:
+# Running directly as root would hide which user should own the installed
+# files. This check enforces the expected pattern: regular user + sudo.
+log_section "03" "Validate the install user"
 user="${USER:-$(id -un 2>/dev/null || echo "#$(id -u)")}"
 if [ "$user" = "root" ] || [ "$user" = "#0" ]; then
-  echo "💩 - Please run this script as a regular user with sudo privileges" | tee -a $LOG
+  log_step "This script must be run as a regular user with sudo privileges"
   exit 1
 fi
 
 
 
 if [ 1 == 2 ]; then #VFG Debug
-  # Install Necessary Packages:
-  echo "4️⃣ - Update the necessary packages" | tee -a $LOG
+  # Section 04:
+  # Start from an up-to-date operating system before adding product-specific
+  # dependencies. This block refreshes package indexes and installs the base
+  # toolchain used by the later bootstrap steps.
+  log_section "04" "Refresh apt metadata and install base dependencies"
   sudo apt update -y 
   sudo apt upgrade -y 
 
   sudo apt install -y libglib2.0-dev build-essential 
   sudo apt install -y python3.11 python3.11-venv python3.11-dev
 
-  # Install lates PGSql
+  # These packages are only here to support repository registration and secure
+  # package downloads from external vendors.
   sudo apt install -y wget gnupg ca-certificates lsb-release curl
 
 
-  echo "5️⃣ - Install Postgres DB" | tee -a $LOG
-  # Download PostgreSQL GPG key (new location!)
+  # Section 05:
+  # PostgreSQL is installed from the upstream PGDG repository so the target
+  # version stays available regardless of the base Raspberry Pi OS defaults.
+  log_section "05" "Configure the PostgreSQL apt repository"
+  # Import the PostgreSQL signing key.
   wget -qO- https://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc \
     | gpg --dearmor \
     | sudo tee /usr/share/keyrings/postgresql.gpg > /dev/null
 
-  # Add PostgreSQL repo (adapt codename: bullseye, bookworm, jammy, etc.)
+  # Register the PostgreSQL repository for the current Debian release.
   echo "deb [signed-by=/usr/share/keyrings/postgresql.gpg] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" \
     | sudo tee /etc/apt/sources.list.d/pgdg.list
 
-  echo "6️⃣ - Continue to install packages and updates"  | tee -a $LOG
-  # Update and install
+  # Section 06:
+  # Install the database, web server, networking tools, and Python/system
+  # libraries that the final Denodo environment depends on.
+  log_section "06" "Install PostgreSQL and runtime packages"
+  # Refresh package indexes after adding PostgreSQL and install runtime packages.
   sudo apt update
   sudo apt install -y postgresql-15 postgresql-client-15 libpq-dev
-
-  sudo apt install libpq-dev -y
   sudo apt install nginx -y
   sudo apt install gettext -y
   sudo apt install git -y
@@ -81,28 +111,38 @@ if [ 1 == 2 ]; then #VFG Debug
   sudo apt install python3-pip -y
   sudo apt install dnsmasq network-manager -y
 
-  echo "7️⃣ - Configure NAT routing for the captive portal" | tee -a $LOG
-  # Pre-seed iptables-persistent answers
+  # Section 07:
+  # The hotspot/captive-portal path needs persisted firewall rules. Preseeding
+  # the debconf answers prevents the package install from stopping for input.
+  log_section "07" "Prepare NAT routing for the captive portal"
+  # Preseed iptables-persistent so the package install stays non-interactive.
   echo iptables-persistent iptables-persistent/autosave_v4 boolean true | sudo debconf-set-selections
   echo iptables-persistent iptables-persistent/autosave_v6 boolean true | sudo debconf-set-selections
 
-  # Install packages non-interactively
-  echo "8️⃣ - Install packages non-interactively" | tee -a $LOG
+  # Section 08:
+  # Install the firewall packages after preseeding so the setup remains fully
+  # unattended during automatic provisioning.
+  log_section "08" "Install firewall persistence packages"
   sudo DEBIAN_FRONTEND=noninteractive apt install -y iptables iptables-persistent
 
   sudo rm -f /var/lib/systemd/rfkill/*
   sudo systemctl restart systemd-rfkill.service
 
-  # Configure the Postgres DB fro Denodo
-  echo "1️⃣2️⃣ - Configure PostgreSQL database"
+  # Section 09:
+  # PostgreSQL needs two kinds of access for this deployment:
+  # 1. Local trusted access for the bootstrap steps.
+  # 2. Remote access for the Denodo application user on the project subnet.
+  # This section updates both the authentication rules and the listener
+  # settings, then restarts PostgreSQL so the changes take effect.
+  log_section "09" "Configure PostgreSQL access for Denodo"
 
   pg_hba_files=(/etc/postgresql/*/main/pg_hba.conf)
 
-  # Count existing trust entries (never fail under set -e)
+  # Count trust entries without failing when no file matches.
   trust=$(sudo grep -cE '^local[[:space:]]+all[[:space:]]+all[[:space:]]+trust' "${pg_hba_files[@]}" || true)
 
   if [ "$trust" -lt 1 ]; then
-    echo "Configuring PostgreSQL for trusted access" | tee -a $LOG
+    log_step "Configuring PostgreSQL for trusted local access"
 
     sudo sed -i.orig -E \
       's/^(local[[:space:]]+all[[:space:]]+all[[:space:]]+)(peer|md5|scram-sha-256)$/\1trust/' \
@@ -112,12 +152,12 @@ if [ 1 == 2 ]; then #VFG Debug
     trust=$(sudo grep -cE '^local[[:space:]]+all[[:space:]]+all[[:space:]]+trust' "${pg_hba_files[@]}" || true)
 
     if [ "$trust" -lt 1 ]; then
-      echo "Failed to configure PostgreSQL" | tee -a $LOG
+      log_step "Failed to configure PostgreSQL local trust access"
       exit 1
     fi
   fi
 
-  # ---- Remote access for denodo user (NEW) ----
+  # Add a network rule for the application user if it is not already present.
 
   DENODO_SUBNET="192.168.0.0/16"
   DENODO_USER=${DENODO_PG_USER:-"denodo"}
@@ -127,41 +167,40 @@ if [ 1 == 2 ]; then #VFG Debug
   "${pg_hba_files[@]}" || true)
 
   if [ "$remote_denodopi" -lt 1 ]; then
-    echo "Configuring PostgreSQL network access for user '$DENODO_USER'" | tee -a $LOG
+    log_step "Configuring PostgreSQL network access for user '$DENODO_USER'"
 
     sudo sed -i.orig -E \
       "/^#.*IPv4 local connections:/a host all $DENODO_USER $DENODO_SUBNET scram-sha-256" \
       "${pg_hba_files[@]}"
   fi
 
-  echo "- Configure PostgreSQL listen_addresses" | tee -a $LOG
+  log_step "Configuring PostgreSQL listen_addresses"
 
   pg_conf_files=(/etc/postgresql/*/main/postgresql.conf)
 
   for PG_CONF in "${pg_conf_files[@]}"; do
-    echo "Configuring $PG_CONF" | tee -a $LOG
+    log_step "Updating $PG_CONF"
 
-    # Ensure file exists
+    # Fail fast if the expected PostgreSQL config file is missing.
     if [ ! -f "$PG_CONF" ]; then
-      echo "Config not found: $PG_CONF" | tee -a $LOG
+      log_step "Config not found: $PG_CONF"
       exit 1
     fi
 
-    # Backup once
+    # Keep a one-time backup of the original PostgreSQL config.
     if [ ! -f "$PG_CONF.orig" ]; then
-      echo "- Backup PostgreSQL: $PG_CONF" | tee -a $LOG
+      log_step "Backing up $PG_CONF to $PG_CONF.orig"
       sudo cp "$PG_CONF" "$PG_CONF.orig"
     fi
 
-    # Set listen_addresses = '*'
-    echo "- Update PostgreSQL: $PG_CONF" | tee -a $LOG
+    # Listen on all interfaces required by the target network layout.
     sudo sed -i -E \
       "s|^[[:space:]]*#?[[:space:]]*listen_addresses[[:space:]]*=.*|listen_addresses = '*'|" \
       "$PG_CONF"
     
-    # Verify
+    # Verify the listen_addresses update before continuing.
     if ! grep -q "^listen_addresses = '\\*'" "$PG_CONF"; then
-      echo "Failed to update listen_addresses in $PG_CONF" | tee -a $LOG
+      log_step "Failed to update listen_addresses in $PG_CONF"
       exit 1
     fi
   done
@@ -174,11 +213,14 @@ if [ 1 == 2 ]; then #VFG Debug
     sudo pg_ctlcluster "$version" "$name" restart 
   done
 
-  echo "- Restart PostgreSQL" | tee -a $LOG
+  log_step "Restarting PostgreSQL"
   sudo systemctl restart postgresql
 
-  # Postgres DB Config
-  echo "1️⃣3️⃣ - Create Denodo Database" | tee -a $LOG
+  # Section 10:
+  # Create the PostgreSQL role and database expected by Denodo. Re-running the
+  # script should converge on the same state, so existing roles are updated
+  # instead of treated as a failure.
+  log_section "10" "Create or update the Denodo database"
   DENODO_PG_USER=${DENODO_PG_USER:-"denodo"}
   DENODO_PG_PWD=${DENODO_PG_PWD:-"password"}
 
@@ -186,10 +228,10 @@ if [ 1 == 2 ]; then #VFG Debug
     "SELECT 1 FROM pg_roles WHERE rolname='$DENODO_PG_USER'")
 
   if [ -z "$role_exists" ]; then
-    echo "Creating PostgreSQL $DENODO_PG_USER User" | tee -a $LOG
+    log_step "Creating PostgreSQL user $DENODO_PG_USER"
     sudo -u postgres psql -c "CREATE USER $DENODO_PG_USER PASSWORD '$DENODO_PG_PWD'"
   else
-    echo "Updating PostgreSQL $DENODO_PG_USER User" | tee -a $LOG
+    log_step "Updating PostgreSQL user $DENODO_PG_USER"
     sudo -u postgres psql -c "ALTER USER $DENODO_PG_USER WITH PASSWORD '$DENODO_PG_PWD';"
   fi
 
@@ -197,15 +239,17 @@ if [ 1 == 2 ]; then #VFG Debug
     "SELECT 1 FROM pg_database WHERE datname='denodo'")
 
   if [ -z "$db_exists" ]; then
-    echo "Creating PostgreSQL denodo DB" | tee -a $LOG
+    log_step "Creating PostgreSQL database denodo"
     sudo -u postgres psql -c \
       "CREATE DATABASE denodo OWNER=$DENODO_PG_USER LC_COLLATE='C' LC_CTYPE='C' ENCODING='UTF8' TEMPLATE template0"
   fi
 
   sudo -u postgres psql -c "ALTER ROLE $DENODO_PG_USER CREATEDB"
 
-  # Setup Java 17
-  echo "1️⃣1️⃣ - Configure Zulu Java 17" | tee -a $LOG
+  # Section 11:
+  # Denodo 9 requires Java 17. This block registers the Azul repository and
+  # installs Zulu JDK 17 so the installer has a supported JVM.
+  log_section "11" "Configure Zulu Java 17"
   curl -s https://repos.azul.com/azul-repo.key \
   | sudo gpg --dearmor -o /usr/share/keyrings/azul.gpg
 
@@ -220,8 +264,10 @@ if [ 1 == 2 ]; then #VFG Debug
 
 
 
-  # Install Denodo 9 #
-  echo "1️⃣1️⃣ - Instrall Denodo 9" | tee -a $LOG
+  # Section 12:
+  # Prepare the Denodo installer directory, link the detected JVM, place the
+  # license file, and run the unattended platform installation.
+  log_section "12" "Install Denodo 9"
   DENODO_INSTALL="/home/denodo/denodo-install-9"
   unset DISPLAY
   cd "$DENODO_INSTALL"
@@ -247,28 +293,29 @@ if [ 1 == 2 ]; then #VFG Debug
 
   ./installer_cli.sh install --autoinstaller response_file_9_0.xml | tee -a $LOG
   ####################
-else 
-#VFG Debug
-  # Install Denodo AISDK #
-  echo "1️⃣1️⃣ - Install Denodo AISDK" | tee -a $LOG
+
+  # Section 13:
+  # The AI SDK lives in its own Git repository. On first install it is cloned;
+  # on later runs it is refreshed so the workspace matches the remote branch.
+  log_section "13" "Install Denodo AI SDK"
   GITHUB_REPO_URL="https://github.com/denodo/denodo-ai-sdk.git"
 
 
   AISDK_INSTALL_DIR="/opt/denodo-aisdk"
-  echo "[INIT] Repo: denodo-ai-sdk" | tee -a $LOG
-  echo "[INIT] Install dir: $AISDK_INSTALL_DIR" | tee -a $LOG
-  echo "[INIT] Branch: $BRANCH" | tee -a $LOG
+  log_step "Repository: denodo-ai-sdk"
+  log_step "Install directory: $AISDK_INSTALL_DIR"
+  log_step "Branch: $BRANCH"
   sudo mkdir -p "$AISDK_INSTALL_DIR"
   sudo chown -R denodo:denodo "$AISDK_INSTALL_DIR"
 
-  # Clone or update repo
+  # Clone the repo on first install, otherwise refresh the existing checkout.
   if [ ! -d "$AISDK_INSTALL_DIR/.git" ]; then
-    echo "[INIT] Cloning denodo-ai-sdk repository..." | tee -a $LOG
+    log_step "Cloning denodo-ai-sdk repository"
     git clone "$GITHUB_REPO_URL" "$AISDK_INSTALL_DIR"
     chown -R denodo:denodo "$AISDK_INSTALL_DIR"
     
   else
-    echo "[INIT] Updating denodo-ai-sdk repository (force reset)..." | tee -a "$LOG"
+    log_step "Updating denodo-ai-sdk repository"
     cd "$AISDK_INSTALL_DIR" || exit 1
 
     git fetch origin
@@ -279,10 +326,14 @@ else
 
 
 
-  echo "1️⃣1️⃣ - Configure Python virtual environlent" | tee -a $LOG
+  # Section 14:
+  # The AI SDK depends on a fairly large native/Python build toolchain on
+  # Raspberry Pi. This section installs apt dependencies, bootstraps pyenv,
+  # and builds the Python runtime used by the project.
+  log_section "14" "Configure the Python environment"
   cd ~
 
-  echo "- Pre-installs Debian/Raspberry Pi OS packages that reduce build time for this repo's Python requirements on a Raspberry Pi." | tee -a $LOG
+  log_step "Installing Debian packages that reduce Python build time on Raspberry Pi"
 
   base_packages=(
     build-essential
@@ -314,7 +365,6 @@ else
     liblapack-dev
     libjpeg-dev
     libpng-dev
-    libopenblas-dev
     libharfbuzz-dev
     libfribidi-dev
     liblcms2-dev
@@ -362,6 +412,8 @@ else
 
   add_if_available() {
     local pkg="$1"
+    # Keep the install resilient across Debian/Raspberry Pi OS variants by
+    # selecting only packages that exist in the current apt metadata.
     if apt-cache show "$pkg" >/dev/null 2>&1; then
       available_packages+=("$pkg")
     else
@@ -369,10 +421,10 @@ else
     fi
   }
 
-  echo "- Refreshing apt metadata..." | tee -a $LOG
+  log_step "Refreshing apt metadata"
   sudo apt-get update
 
-  echo "- Collecting available packages..." | tee -a $LOG
+  log_step "Collecting available apt packages"
   for pkg in "${base_packages[@]}"; do
     add_if_available "$pkg"
   done
@@ -388,21 +440,18 @@ else
 
 
   if [[ "${#available_packages[@]}" -eq 0 ]]; then
-    echo "No installable apt packages were found." | tee -a $LOG
+    log_step "No installable apt packages were found"
   fi
 
-  echo "Installing ${#available_packages[@]} package(s)..." | tee -a $LOG
+  log_step "Installing ${#available_packages[@]} apt package(s)"
   sudo apt-get install -y "${available_packages[@]}"
 
-  sudo apt install -y rustc cargo
-
-  # Install pyenv
-  echo "[INIT] Install pyenv" | tee -a $LOG
+  # Install pyenv to manage the project Python version.
+  log_step "Installing pyenv"
   sudo rm -rf ~/.pyenv
   curl -fsSL https://pyenv.run | bash
 
-  # Add pyenv to bashrc (idempotent: won't duplicate)
-  # Add to bashrc ONLY if not already present
+  # Add pyenv init hooks to .bashrc only once.
   if ! grep -q 'pyenv init' "$HOME/.bashrc"; then
     {
       echo '' 
@@ -413,17 +462,21 @@ else
     } >> "$HOME/.bashrc"
   fi
 
-  # 👉 Make pyenv available in THIS script (important)
+  # Load pyenv into the current shell so the script can use it immediately.
   export PATH="$HOME/.pyenv/bin:$PATH"
   eval "$(~/.pyenv/bin/pyenv init -)"
   eval "$(~/.pyenv/bin/pyenv virtualenv-init -)"
 
-  # Install Python
-  echo "- Install python 3.11 in venv" | tee -a $LOG
+  # Build and select Python 3.11 for the install user.
+  log_step "Installing Python 3.11 with pyenv"
   MAKE_OPTS="-j$(nproc)" pyenv install -s 3.11
   pyenv global 3.11
 
-  # Verify
+else 
+#VFG Debug
+  # Alternate path:
+  # When the bootstrap block above is disabled, reuse the system Python and
+  # create a project virtual environment locally instead of rebuilding Python.
   python --version
 
   # Try to find any python3 version
@@ -440,54 +493,59 @@ else
   py_minor=$(echo "$py_ver_str" | cut -d. -f2)
   py_ver=$py_major.$py_minor
 
-  # Check if version >= 3.10
+  # Require Python 3.10+ for the virtual environment and dependencies.
   if [ "$py_major" -lt 3 ] || { [ "$py_major" -eq 3 ] && [ "$py_minor" -lt 10 ]; }; then
-      echo "💩 - Please install Python 3.10 or higher (you have $py_ver_str)" | tee -a $LOG
+      log_step "Python 3.10 or higher is required; found $py_ver_str"
       exit 1
   fi
 
-  echo "✅ Python version $py_ver is OK" | tee -a $LOG
+  log_step "Python version $py_ver is available"
   python="$py_cmd"
-  # ---- Virtual environment name ----
+  # Recreate the environment if it targets a different Python minor version.
   VENV_DIR="venv_denodo"
   venv_cfg="$VENV_DIR/pyvenv.cfg"
 
   if [[ -f "${venv_cfg}" && "$(grep -c version\ =\ ${py_ver} ${venv_cfg})" -eq 0 ]]; then
-    echo "💩 - Installed virtual env does not match needed version: remove it" | tee -a $LOG
+    log_step "Removing virtual environment because it targets a different Python version"
     sudo rm -rf "$VENV_DIR"
   fi
   if [ ! -d "$VENV_DIR" ]; then
-    echo "Creating Python ${py_ver} virtual environment" | tee -a $LOG
+    log_step "Creating Python ${py_ver} virtual environment"
     $python -m venv "$VENV_DIR"
   fi
 
-  echo "Updating pip" | tee -a $LOG
-  echo "source $VENV_DIR/bin/activate" | tee -a $LOG
+  log_step "Updating pip in the virtual environment"
+  log_step "Activating $VENV_DIR"
   source "$VENV_DIR/bin/activate"
   $VENV_DIR/bin/python -m pip install --upgrade pip
 
-  # Start with wheel which is required to compile some of the other requirements
+  # Install wheel first because some downstream packages still rely on it
+  # during native builds on ARM platforms.
   $VENV_DIR/bin/python -m pip install --no-cache-dir wheel
-  echo "PWD: $(pwd)" | tee -a $LOG
+  log_step "Current directory: $(pwd)"
 
- 
+	 
   cd "$AISDK_INSTALL_DIR" || exit 1
-  echo "PWD: $(pwd)" | tee -a $LOG
+  log_step "Current directory: $(pwd)"
   
   pip install --upgrade pip setuptools wheel
-  echo "Installing AISDK Requirements" | tee -a $LOG
+  log_step "Installing AI SDK requirements"
 
   sudo apt update
 
+  # Force the requirements to use the system sqlite build. This avoids pulling
+  # an extra binary package that is not needed on the Raspberry Pi image.
   sed -i 's/^pysqlite3-binary/#pysqlite3-binary/' requirements.txt
-  
+
   /home/denodo/$VENV_DIR/bin/python -m pip install --no-cache-dir --prefer-binary -r requirements.txt
 
 
 
 
-  # HTTP server nginx
-  echo "1️⃣4️⃣ - Configure HTTP server nginx" | tee -a $LOG
+  # Section 15:
+  # nginx wiring is still commented out, but the placeholder remains so the
+  # script structure matches the intended install phases.
+  log_section "15" "Configure nginx"
   # sudo sed -e "s|/opt/aw_box|${root_dir}|g" < aw_box/aw_web/nginx-site.conf > /tmp/nginx-site.conf
 
   # if [ $upgrade -eq 0 ]; then
@@ -549,4 +607,18 @@ else
   # #sudo mv /tmp/nabboot.py /lib/systemd/system-shutdown/nabboot.py
   # #sudo chown root /lib/systemd/system-shutdown/nabboot.py
   # #sudo chmod +x /lib/systemd/system-shutdown/nabboot.py
+
+
+
+  # copy service files
+  log_section "16" "Configuring the different services"
+  log_step "Installing service files"
+  for service_file in $INSTALL_DIR/services/*.service ; do
+    name=`basename ${service_file}`
+    echo "Installing service ${name}"
+    sudo cp $INSTALL_DIR/services/${name} /lib/systemd/system/${name}
+    sudo chown root /lib/systemd/system/${name}
+    sudo systemctl enable ${name}
+  done
+
 fi

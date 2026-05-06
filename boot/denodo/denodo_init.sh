@@ -48,7 +48,7 @@ sudo apt install git -y
 # Defaults (in case .env is missing values)
 GITHUB_REPO=${GITHUB_REPO:-"/vfagesgo/denodo-pi.git"}
 GITHUB_TOKEN=${GITHUB_TOKEN:-""}
-INSTALL_DIR=${INSTALL_DIR:-"/opt/denodo-pi"}
+INSTALL_DIR="/opt/denodo-pi"
 BRANCH=${BRANCH:-"main"}
 
 GITHUB_REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com${GITHUB_REPO}"

@@ -1,0 +1,15 @@
+[Unit]
+Description=Denodo Data Marketplace
+After=denodo-vdp-server.service
+Wants=network-pre.target
+Before=network-online.target
+
+[Service]
+Type=oneshot
+User=denodo
+Group=denodo
+ExecStart=/opt/denodo-9/bin/datacatalog_startup.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

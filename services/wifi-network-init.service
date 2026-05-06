@@ -1,0 +1,13 @@
+[Unit]
+Description=Apply Wi-Fi configuration from boot network-config
+After=local-fs.target systemd-remount-fs.service
+Wants=network-pre.target
+Before=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/denodo-pi/wifi_network_init.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
