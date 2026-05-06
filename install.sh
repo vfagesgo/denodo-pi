@@ -36,6 +36,7 @@ fi
 
 
 INSTALL_DIR="/opt/denodo-pi"
+AISDK_INSTALL_DIR="/opt/denodo-aisdk"
 
 # Section 02:
 # The script is intended for a narrow Raspberry Pi target. This guard avoids
@@ -300,8 +301,6 @@ if [ 1 == 2 ]; then #VFG Debug
   log_section "13" "Install Denodo AI SDK"
   GITHUB_REPO_URL="https://github.com/denodo/denodo-ai-sdk.git"
 
-
-  AISDK_INSTALL_DIR="/opt/denodo-aisdk"
   log_step "Repository: denodo-ai-sdk"
   log_step "Install directory: $AISDK_INSTALL_DIR"
   log_step "Branch: $BRANCH"
