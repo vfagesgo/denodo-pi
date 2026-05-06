@@ -1,6 +1,6 @@
 [Unit]
 Description=Apply Wi-Fi configuration from boot network-config
-After=local-fs.target systemd-remount-fs.service
+After=local-fs.target systemd-remount-fs.service 
 Wants=network-pre.target
 Before=network-online.target
 
