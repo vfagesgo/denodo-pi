@@ -10,7 +10,6 @@ NETWORK_CONFIG_CANDIDATES=(
   "/boot/firmware/network-config"
   "/boot/network-config"
 )
-WPA_CONF=/etc/wpa_supplicant/wpa_supplicant.conf
 
 log() {
   echo "[WIFI-INIT] $1" | tee -a "$LOG"
@@ -70,47 +69,6 @@ extract_country() {
   ' "$1"
 }
 
-is_encrypted_psk() {
-  [[ "$1" =~ ^[[:xdigit:]]{64}$ ]]
-}
-
-build_psk_line() {
-  local ssid="$1"
-  local password="$2"
-  local generated_psk
-
-  if is_encrypted_psk "$password"; then
-    printf '    psk=%s\n' "$password"
-    return 0
-  fi
-
-  generated_psk=$(
-    wpa_passphrase "$ssid" "$password" |
-      awk '/^[[:space:]]*psk=[[:xdigit:]]{64}[[:space:]]*$/ { print; exit }'
-  )
-
-  if [ -z "${generated_psk:-}" ]; then
-    log "Failed to generate encrypted PSK for SSID '$ssid'"
-    exit 1
-  fi
-
-  printf '    %s\n' "$generated_psk"
-}
-
-restart_wifi_stack() {
-  if systemctl list-unit-files | grep -q '^NetworkManager\.service'; then
-    systemctl restart NetworkManager || true
-  fi
-
-  if systemctl list-unit-files | grep -q '^dhcpcd\.service'; then
-    systemctl restart dhcpcd || true
-  fi
-
-  if systemctl list-unit-files | grep -q '^wpa_supplicant\.service'; then
-    systemctl restart wpa_supplicant || true
-  fi
-}
-
 main() {
   touch "$LOG"
 
@@ -146,38 +104,8 @@ main() {
   local tmp_conf
   local psk_line
   tmp_conf=$(mktemp)
-  psk_line=$(build_psk_line "$ssid" "$password")
 
-  # Generate the exact wpa_supplicant file we want on disk, then compare it to
-  # the current one so the service can exit without restarting Wi-Fi on every
-  # boot when nothing changed.
-  cat > "$tmp_conf" <<EOF
-country=$country
-ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
-update_config=1
-
-network={
-    ssid="$ssid"
-$psk_line
-}
-EOF
-
-  if [ -f "$WPA_CONF" ] && cmp -s "$tmp_conf" "$WPA_CONF"; then
-    log "Wi-Fi configuration is already up to date"
-    rm -f "$tmp_conf"
-    exit 0
-  fi
-
-  if [ -f "$WPA_CONF" ]; then
-    cp "$WPA_CONF" "${WPA_CONF}.bak"
-    log "Backed up existing wpa_supplicant.conf to ${WPA_CONF}.bak"
-  fi
-
-  # Install the file with strict permissions because it contains the PSK.
-  install -m 600 "$tmp_conf" "$WPA_CONF"
-  rm -f "$tmp_conf"
-
-  restart_wifi_stack
+  sudo nmcli device wifi connect "$ssid" password "$password"
   log "Wi-Fi configuration applied successfully"
 }
 
