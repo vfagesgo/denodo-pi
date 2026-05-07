@@ -105,6 +105,18 @@ main() {
   local psk_line
   tmp_conf=$(mktemp)
 
+
+  # Wait until the SSID becomes visible
+  for i in {1..30}; do
+      if nmcli -t -f SSID device wifi list | grep -Fxq "$ssid"; then
+          echo "[WIFI-INIT] Found SSID '$ssid'"
+          break
+      fi
+
+      echo "[WIFI-INIT] Waiting for SSID '$ssid'..."
+      sleep 2
+  done
+
   sudo nmcli device wifi connect "$ssid" password "$password"
   log "Wi-Fi configuration applied successfully"
 }
