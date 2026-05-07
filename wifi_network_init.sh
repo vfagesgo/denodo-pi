@@ -70,6 +70,33 @@ extract_country() {
   ' "$1"
 }
 
+is_encrypted_psk() {
+  [[ "$1" =~ ^[[:xdigit:]]{64}$ ]]
+}
+
+build_psk_line() {
+  local ssid="$1"
+  local password="$2"
+  local generated_psk
+
+  if is_encrypted_psk "$password"; then
+    printf '    psk=%s\n' "$password"
+    return 0
+  fi
+
+  generated_psk=$(
+    wpa_passphrase "$ssid" "$password" |
+      awk '/^[[:space:]]*psk=[[:xdigit:]]{64}[[:space:]]*$/ { print; exit }'
+  )
+
+  if [ -z "${generated_psk:-}" ]; then
+    log "Failed to generate encrypted PSK for SSID '$ssid'"
+    exit 1
+  fi
+
+  printf '    %s\n' "$generated_psk"
+}
+
 restart_wifi_stack() {
   if systemctl list-unit-files | grep -q '^NetworkManager\.service'; then
     systemctl restart NetworkManager || true
@@ -117,7 +144,9 @@ main() {
   log "Applying Wi-Fi configuration for SSID '$ssid' with country '$country'"
 
   local tmp_conf
+  local psk_line
   tmp_conf=$(mktemp)
+  psk_line=$(build_psk_line "$ssid" "$password")
 
   # Generate the exact wpa_supplicant file we want on disk, then compare it to
   # the current one so the service can exit without restarting Wi-Fi on every
@@ -129,7 +158,7 @@ update_config=1
 
 network={
     ssid="$ssid"
-    psk="$password"
+$psk_line
 }
 EOF
 
