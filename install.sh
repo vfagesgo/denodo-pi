@@ -50,6 +50,14 @@ log_step "Add cloudflare gpg key"
   # Add this repo to your apt repositories
   echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 
+
+  if [ -f /etc/systemd/system/cloudflared.service ]; then
+    log_step "Removing existing cloudflared service"
+
+    sudo systemctl stop cloudflared || true
+    sudo cloudflared service uninstall || true
+  fi
+  
   log_step "install cloudflared"
   # install cloudflared
   sudo apt-get update && sudo apt-get install cloudflared
