@@ -1,6 +1,7 @@
 [Unit]
 Description=Denodo AISDK and Chatbot
 After=network.target denodo-data-marketplace.service
+Requires=denodo-data-marketplace.service
 Wants=network.target
 
 [Service]
