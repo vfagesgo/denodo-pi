@@ -9,6 +9,7 @@ Type=oneshot
 User=denodo
 Group=denodo
 ExecStart=/opt/denodo-9/bin/designstudio_startup.sh
+ExecStop=/opt/denodo-9/bin/designstudio_shutdown.sh
 RemainAfterExit=yes
 
 [Install]

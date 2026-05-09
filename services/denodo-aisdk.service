@@ -1,0 +1,18 @@
+[Unit]
+Description=Denodo AISDK and Chatbot
+After=network.target denodo-data-marketplace.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=denodo
+Group=denodo
+WorkingDirectory=/opt/denodo-aisdk
+ExecStart=/home/denodo/venv_denodo/bin/python run.py both
+ExecStop=/bin/bash /opt/denodo-aisdk/stop.py both
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

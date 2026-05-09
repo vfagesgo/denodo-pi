@@ -9,6 +9,7 @@ Type=oneshot
 User=denodo
 Group=denodo
 ExecStart=/opt/denodo-9/bin/vqlserver_startup.sh
+ExecStop=/opt/denodo-9/bin/vqlserver_shutdown.sh
 RemainAfterExit=yes
 
 [Install]

@@ -9,7 +9,7 @@ Type=oneshot
 User=denodo
 Group=denodo
 ExecStart=/opt/denodo-9/bin/datacatalog_startup.sh
-RemainAfterExit=yes
+ExecStop=/opt/denodo-9/bin/datacatalog_shutdown.sh
 
 [Install]
 WantedBy=multi-user.target

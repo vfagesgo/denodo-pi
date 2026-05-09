@@ -38,6 +38,27 @@ fi
 INSTALL_DIR="/opt/denodo-pi"
 AISDK_INSTALL_DIR="/opt/denodo-aisdk"
 
+# Install Cloudflare tunnel if env variable is set
+# Add cloudflare gpg key
+
+if [ -n "$CLOUDFLARE_TUNNEL_KEY" ]; then
+log_step "Add cloudflare gpg key"
+  sudo mkdir -p --mode=0755 /usr/share/keyrings
+  curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
+  
+  log_step "Add this repo to your apt repositories"
+  # Add this repo to your apt repositories
+  echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
+
+  log_step "install cloudflared"
+  # install cloudflared
+  sudo apt-get update && sudo apt-get install cloudflared
+
+  sudo cloudflared service install $CLOUDFLARE_TUNNEL_KEY
+fi
+
+
+
 # Section 02:
 # The script is intended for a narrow Raspberry Pi target. This guard avoids
 # running the platform-specific setup on unsupported hardware unless the test
@@ -303,7 +324,7 @@ if [ 1 == 2 ]; then #VFG Debug
 
   log_step "Repository: denodo-ai-sdk"
   log_step "Install directory: $AISDK_INSTALL_DIR"
-  log_step "Branch: $BRANCH"
+  log_step "Branch: main"
   sudo mkdir -p "$AISDK_INSTALL_DIR"
   sudo chown -R denodo:denodo "$AISDK_INSTALL_DIR"
 
@@ -321,9 +342,6 @@ if [ 1 == 2 ]; then #VFG Debug
     git reset --hard "origin"
     git clean -fd
   fi
-
-
-
 
   # Section 14:
   # The AI SDK depends on a fairly large native/Python build toolchain on
@@ -471,8 +489,7 @@ if [ 1 == 2 ]; then #VFG Debug
   MAKE_OPTS="-j$(nproc)" pyenv install -s 3.11
   pyenv global 3.11
 
-else 
-#VFG Debug
+else #VFG Debug
   # Alternate path:
   # When the bootstrap block above is disabled, reuse the system Python and
   # create a project virtual environment locally instead of rebuilding Python.
@@ -538,6 +555,21 @@ else
 
   /home/denodo/$VENV_DIR/bin/python -m pip install --no-cache-dir --prefer-binary -r requirements.txt
 
+
+
+  if [ ! -f "/boot/firmware/denodo/chatbot_config.env" ]; then
+    log_step "Copy chatbot config file chatbot_config.env "
+      
+    sudo cp /boot/firmware/denodo/chatbot_config.env $AISDK_INSTALL_DIR/sample_chatbot/chatbot_config.env
+    sudo chown denodo:denodo $AISDK_INSTALL_DIR/sample_chatbot/chatbot_config.env
+  fi
+
+  if [ ! -f "/boot/firmware/denodo/sdk_config.env" ]; then
+    log_step "Copy AISDK config file sdk_config.env "
+      
+    sudo cp /boot/firmware/denodo/chatbot_config.env $AISDK_INSTALL_DIR/api/utils/sdk_config.env
+    sudo chown denodo:denodo $AISDK_INSTALL_DIR/api/utils/sdk_config.env
+  fi
 
 
 
