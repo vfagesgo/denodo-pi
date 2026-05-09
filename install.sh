@@ -55,6 +55,7 @@ log_step "Add cloudflare gpg key"
   sudo apt-get update && sudo apt-get install cloudflared
 
   sudo cloudflared service install $CLOUDFLARE_TUNNEL_KEY
+  sudo systemctl enable cloudflared
 fi
 
 
@@ -567,7 +568,7 @@ else #VFG Debug
   if [ ! -f "/boot/firmware/denodo/sdk_config.env" ]; then
     log_step "Copy AISDK config file sdk_config.env "
       
-    sudo cp /boot/firmware/denodo/chatbot_config.env $AISDK_INSTALL_DIR/api/utils/sdk_config.env
+    sudo cp /boot/firmware/denodo/sdk_config.env $AISDK_INSTALL_DIR/api/utils/sdk_config.env
     sudo chown denodo:denodo $AISDK_INSTALL_DIR/api/utils/sdk_config.env
   fi
 
