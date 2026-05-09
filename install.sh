@@ -57,7 +57,7 @@ log_step "Add cloudflare gpg key"
     sudo systemctl stop cloudflared || true
     sudo cloudflared service uninstall || true
   fi
-  
+
   log_step "install cloudflared"
   # install cloudflared
   sudo apt-get update && sudo apt-get install cloudflared
@@ -566,14 +566,14 @@ else #VFG Debug
 
 
 
-  if [ ! -f "/boot/firmware/denodo/chatbot_config.env" ]; then
+  if [ -f "/boot/firmware/denodo/chatbot_config.env" ]; then
     log_step "Copy chatbot config file chatbot_config.env "
       
     sudo cp /boot/firmware/denodo/chatbot_config.env $AISDK_INSTALL_DIR/sample_chatbot/chatbot_config.env
     sudo chown denodo:denodo $AISDK_INSTALL_DIR/sample_chatbot/chatbot_config.env
   fi
 
-  if [ ! -f "/boot/firmware/denodo/sdk_config.env" ]; then
+  if [ -f "/boot/firmware/denodo/sdk_config.env" ]; then
     log_step "Copy AISDK config file sdk_config.env "
       
     sudo cp /boot/firmware/denodo/sdk_config.env $AISDK_INSTALL_DIR/api/utils/sdk_config.env
