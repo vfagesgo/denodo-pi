@@ -304,6 +304,12 @@ JAVA_BIN=$(readlink -f $(which java) || true)
 JAVA_HOME=$(dirname $(dirname "$JAVA_BIN"))
 
 ln -s "$JAVA_HOME" jre
+cd denodo-update
+mkdir jre
+cd jre
+ln -s "$JAVA_HOME" jre-linux
+cd "$DENODO_INSTALL"
+
 # Configure for current session
 export JAVA_HOME="$JAVA_HOME"
 export PATH="$JAVA_HOME/bin:$PATH"
