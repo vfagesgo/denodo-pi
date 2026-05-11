@@ -336,11 +336,11 @@ if [ 1 == 2 ]; then #VFG Debug
         "$CONF_FILE"
   }
   log_step "JAVA Config: Change -Xmx in VDBConfiguration.properties"
-  change_config "-Xmx" "/opt/denodo-9/conf/vdp/VDBConfiguration.properties" "4096m"
+  change_config "-Xmx" "/opt/denodo-9/conf/vdp/VDBConfiguration.properties" "2048m"
   log_step "JAVA Config: Change -XX:ReservedCodeCacheSize= in VDBConfiguration.properties"
-  change_config "-XX:ReservedCodeCacheSize=" "/opt/denodo-9/resources/apache-tomcat/conf/tomcat.properties" "256m"
+  change_config "-XX:ReservedCodeCacheSize=" "/opt/denodo-9/conf/vdp/VDBConfiguration.properties" "256m"
   log_step "JAVA Config: Change -Xmx in resources/apache-tomcat/conf/tomcat.properties"
-  change_config "-Xmx" "/opt/denodo-9/resources/apache-tomcat/conf/tomcat.properties" "1536m"
+  change_config "-Xmx" "/opt/denodo-9/resources/apache-tomcat/conf/tomcat.properties" "1024m"
   
   /opt/denodo-9/bin/regenerateFiles.sh
   fi

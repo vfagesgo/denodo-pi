@@ -2,7 +2,6 @@
 Description=VDP VQL  Server
 After=local-fs.target systemd-remount-fs.service wifi-network-init.service
 Wants=network-pre.target NetworkManager.service
-Before=network-online.target
 
 [Service]
 Type=simple
