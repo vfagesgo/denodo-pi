@@ -321,8 +321,26 @@ if [ 1 == 2 ]; then #VFG Debug
   sudo mkdir /opt/denodo-9
   sudo chown -R denodo:denodo /opt/denodo-9
 
-
   ./installer_cli.sh install --autoinstaller response_file_9_0.xml | tee -a $LOG
+ 
+  else #VFG Debug
+  ## Change Java Xmx memory to be able to run on a Raspeberry PI
+  change_config_Xmx() {
+    local CONF_FILE="$1"
+    local NEW_XMX="$2"
+
+    cp -p "$CONF_FILE" "$CONF_FILE.bak.$(date +%F_%H%M%S)" &&
+    sed -i -E \
+        '/^java\.env\.DENODO_OPTS_START[[:space:]]*=/ s/-Xmx[0-9]+[mMgG]/-Xmx'"$NEW_XMX"'/g' \
+        "$CONF_FILE"
+  }
+  log_step "JAVA Config: Change Xmx in VDBConfiguration.properties"
+  change_config_Xmx "opt/denodo-9/conf/vdp/VDBConfiguration.properties" "1536m"
+  log_step "JAVA Config: Change Xmx in resources/apache-tomcat/conf/tomcat.properties"
+  change_config_Xmx "opt/denodo-9/resources/apache-tomcat/conf/tomcat.properties" "512m"
+  fi
+
+  if false; then VFG
   ####################
 
   # Section 13:
@@ -498,7 +516,9 @@ if [ 1 == 2 ]; then #VFG Debug
   MAKE_OPTS="-j$(nproc)" pyenv install -s 3.11
   pyenv global 3.11
 
-else #VFG Debug
+  
+  else #VFG Debug
+
   # Alternate path:
   # When the bootstrap block above is disabled, reuse the system Python and
   # create a project virtual environment locally instead of rebuilding Python.
