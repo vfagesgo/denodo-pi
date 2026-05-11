@@ -8,6 +8,7 @@ Wants=network.target
 Type=simple
 User=denodo
 Group=denodo
+MemoryMax=1G
 WorkingDirectory=/opt/denodo-aisdk
 ExecStart=/home/denodo/venv_denodo/bin/python run.py both
 ExecStop=/home/denodo/venv_denodo/bin/python stop.py both
