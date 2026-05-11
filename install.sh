@@ -335,9 +335,12 @@ if [ 1 == 2 ]; then #VFG Debug
         "$CONF_FILE"
   }
   log_step "JAVA Config: Change Xmx in VDBConfiguration.properties"
-  change_config_Xmx "opt/denodo-9/conf/vdp/VDBConfiguration.properties" "1536m"
+  change_config_Xmx "/opt/denodo-9/conf/vdp/VDBConfiguration.properties" "1536m"
   log_step "JAVA Config: Change Xmx in resources/apache-tomcat/conf/tomcat.properties"
-  change_config_Xmx "opt/denodo-9/resources/apache-tomcat/conf/tomcat.properties" "512m"
+  change_config_Xmx "/opt/denodo-9/resources/apache-tomcat/conf/tomcat.properties" "512m"
+
+
+  /opt/denodo-9/bin/regenerateFiles.sh
   fi
 
   if false; then VFG
