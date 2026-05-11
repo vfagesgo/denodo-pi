@@ -325,7 +325,7 @@ if [ 1 == 2 ]; then #VFG Debug
  
   else #VFG Debug
   ## Change Java Xmx memory to be able to run on a Raspeberry PI
-  change_config_Xmx() {
+  change_config() {
     local PARAM="$1"
     local CONF_FILE="$2"
     local NEW_XMX="$3"
@@ -342,11 +342,6 @@ if [ 1 == 2 ]; then #VFG Debug
   log_step "JAVA Config: Change -Xmx in resources/apache-tomcat/conf/tomcat.properties"
   change_config "-Xmx" "/opt/denodo-9/resources/apache-tomcat/conf/tomcat.properties" "1024m"
   
-
-
-  -XX:ReservedCodeCacheSize=128m
-
-
   /opt/denodo-9/bin/regenerateFiles.sh
   fi
 
