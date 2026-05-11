@@ -1,7 +1,7 @@
 [Unit]
 Description=Denodo Data Marketplace
-After=denodo-vdp-server.service
-Wants=network-pre.target
+After=local-fs.target systemd-remount-fs.service denodo-vdp-server.service
+Wants=network-pre.target NetworkManager.service
 Before=network-online.target
 
 [Service]
