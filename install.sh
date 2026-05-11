@@ -326,18 +326,25 @@ if [ 1 == 2 ]; then #VFG Debug
   else #VFG Debug
   ## Change Java Xmx memory to be able to run on a Raspeberry PI
   change_config_Xmx() {
-    local CONF_FILE="$1"
-    local NEW_XMX="$2"
+    local PARAM="$1"
+    local CONF_FILE="$2"
+    local NEW_XMX="$3"
 
     cp -p "$CONF_FILE" "$CONF_FILE.bak.$(date +%F_%H%M%S)" &&
     sed -i -E \
         '/^java\.env\.DENODO_OPTS_START[[:space:]]*=/ s/-Xmx[0-9]+[mMgG]/-Xmx'"$NEW_XMX"'/g' \
         "$CONF_FILE"
   }
-  log_step "JAVA Config: Change Xmx in VDBConfiguration.properties"
-  change_config_Xmx "/opt/denodo-9/conf/vdp/VDBConfiguration.properties" "1536m"
-  log_step "JAVA Config: Change Xmx in resources/apache-tomcat/conf/tomcat.properties"
-  change_config_Xmx "/opt/denodo-9/resources/apache-tomcat/conf/tomcat.properties" "1024m"
+  log_step "JAVA Config: Change -Xmx in VDBConfiguration.properties"
+  change_config "-Xmx" "/opt/denodo-9/conf/vdp/VDBConfiguration.properties" "2048m"
+  log_step "JAVA Config: Change -XX:ReservedCodeCacheSize= in VDBConfiguration.properties"
+  change_config "-XX:ReservedCodeCacheSize=" "/opt/denodo-9/resources/apache-tomcat/conf/tomcat.properties" "128m"
+  log_step "JAVA Config: Change -Xmx in resources/apache-tomcat/conf/tomcat.properties"
+  change_config "-Xmx" "/opt/denodo-9/resources/apache-tomcat/conf/tomcat.properties" "1024m"
+  
+
+
+  -XX:ReservedCodeCacheSize=128m
 
 
   /opt/denodo-9/bin/regenerateFiles.sh
