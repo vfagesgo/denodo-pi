@@ -1,0 +1,12 @@
+[Unit]
+Description=Update Denodo configuration files
+After=local-fs.target systemd-remount-fs.service denodo_house_keeping.service
+Before=wifi-network-init.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/denodo-pi/tools/update_config_files.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

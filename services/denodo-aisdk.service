@@ -12,6 +12,7 @@ MemoryMax=1G
 WorkingDirectory=/opt/denodo-aisdk
 
 ExecStartPre=/bin/sleep 120
+TimeoutStartSec=180
 ExecStart=/home/denodo/venv_denodo/bin/python run.py both
 ExecStop=/home/denodo/venv_denodo/bin/python stop.py both
 

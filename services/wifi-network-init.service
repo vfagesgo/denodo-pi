@@ -6,7 +6,7 @@ Before=network-online.target
 
 [Service]
 Type=oneshot
-ExecStart=/opt/denodo-pi/wifi_network_init.sh
+ExecStart=/opt/denodo-pi/tools/wifi_network_init.sh
 RemainAfterExit=yes
 
 [Install]
