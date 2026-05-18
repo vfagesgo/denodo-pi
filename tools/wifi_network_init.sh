@@ -6,13 +6,35 @@ set -euo pipefail
 # definition, and rewrites wpa_supplicant so the device joins that network.
 
 LOG=/var/log/2-wifi_network_init.log
+
 NETWORK_CONFIG_CANDIDATES=(
   "/boot/firmware/network-config"
   "/boot/network-config"
 )
 
-log() {
-  echo "[WIFI-INIT] $1" | tee -a "$LOG"
+log_section() {
+  echo "[SECTION $1] $2" | tee -a "$LOG"
+}
+
+log_step() {
+  echo "[STEP] $1" | tee -a "$LOG"
+}
+
+configure_hostname() {
+  if [ -z "${HOSTNAME:-}" ]; then
+    log_step "HOSTNAME not provided; keeping current hostname"
+    return 0
+  fi
+
+  log_step "Setting system hostname to '$HOSTNAME'"
+  sudo hostnamectl set-hostname "$HOSTNAME"
+
+  if command -v nmcli >/dev/null 2>&1; then
+    log_step "Setting NetworkManager hostname to '$HOSTNAME'"
+    sudo nmcli general hostname "$HOSTNAME"
+  else
+    log_step "nmcli not available; skipped NetworkManager hostname update"
+  fi
 }
 
 find_network_config() {
@@ -72,26 +94,42 @@ extract_country() {
 main() {
   touch "$LOG"
 
+
+  # Load environment variables from the boot partition when available.
+  log_section "1" "Load env variables"
+  if [ -f /boot/firmware/denodo/denodo_config.env ]; then
+      log_step "Loading config from /boot/firmware/denodo/denodo_config.env"
+      set -o allexport
+      source /boot/firmware/denodo/denodo_config.env
+      set +o allexport
+  else
+      log_step "No config file found; continuing with defaults"
+  fi
+
+  log_section "2" "Configure Hostname"
+  configure_hostname
+
+  log_section "3" "Network Configuration"
   local network_config
   network_config=$(find_network_config || true)
   if [ -z "${network_config:-}" ]; then
-    log "No boot network-config file found; nothing to apply"
+    log_step "No boot network-config file found; nothing to apply"
     exit 0
   fi
 
-  log "Using network config: $network_config"
+  log_step "Using network config: $network_config"
 
   local ssid
   ssid=$(extract_first_ssid "$network_config")
   if [ -z "${ssid:-}" ]; then
-    log "No Wi-Fi SSID found in $network_config"
+    log_step "No Wi-Fi SSID found in $network_config"
     exit 0
   fi
 
   local password
   password=$(extract_password_for_ssid "$network_config" "$ssid")
   if [ -z "${password:-}" ]; then
-    log "No password found for SSID '$ssid' in $network_config"
+    log_step "No password found for SSID '$ssid' in $network_config"
     exit 1
   fi
 
@@ -99,7 +137,7 @@ main() {
   country=$(extract_country "$network_config")
   country=${country:-FR}
 
-  log "Applying Wi-Fi configuration for SSID '$ssid' with country '$country'"
+  log_step "Applying Wi-Fi configuration for SSID '$ssid' with country '$country'"
 
   local tmp_conf
   local psk_line
@@ -118,7 +156,26 @@ main() {
   done
 
   sudo nmcli device wifi connect "$ssid" password "$password"
-  log "Wi-Fi configuration applied successfully"
+  log_step "Wi-Fi configuration applied successfully"
+
+
+  ## Start CLoudflare tunnel if a cloudflare CLOUDFLARE_TUNNEL_KEY is define
+  if [ -n "${CLOUDFLARE_TUNNEL_KEY:-}" ]; then
+    log_section "4" "Configure Cloudflare Tunnel"
+    if [ -f /etc/systemd/system/cloudflared.service ]; then
+      log_step "Removing existing cloudflared service"
+
+      sudo systemctl stop cloudflared || true
+      sudo cloudflared service uninstall || true
+      sudo systemctl restart cloudflared
+    fi
+
+    log_step "install cloudflared service"
+
+    sudo cloudflared service install "$CLOUDFLARE_TUNNEL_KEY"
+    sudo systemctl enable cloudflared
+    sudo systemctl restart cloudflared
+  fi
 }
 
 main "$@"

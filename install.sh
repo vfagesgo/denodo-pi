@@ -41,16 +41,20 @@ AISDK_INSTALL_DIR="/opt/denodo-aisdk"
 # Install Cloudflare tunnel if env variable is set
 # Add cloudflare gpg key
 
-if [ -n "$CLOUDFLARE_TUNNEL_KEY" ]; then
+
 log_step "Add cloudflare gpg key"
-  sudo mkdir -p --mode=0755 /usr/share/keyrings
-  curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
-  
-  log_step "Add this repo to your apt repositories"
-  # Add this repo to your apt repositories
-  echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
+sudo mkdir -p --mode=0755 /usr/share/keyrings
+curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg | sudo tee /usr/share/keyrings/cloudflare-main.gpg >/dev/null
 
+log_step "Add this repo to your apt repositories"
+# Add this repo to your apt repositories
+echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' | sudo tee /etc/apt/sources.list.d/cloudflared.list
 
+log_step "install cloudflared"
+# install cloudflared
+sudo apt-get update && sudo apt-get install cloudflared
+
+if [ -n "$CLOUDFLARE_TUNNEL_KEY" ]; then
   if [ -f /etc/systemd/system/cloudflared.service ]; then
     log_step "Removing existing cloudflared service"
 
@@ -58,12 +62,9 @@ log_step "Add cloudflare gpg key"
     sudo cloudflared service uninstall || true
   fi
 
-  log_step "install cloudflared"
-  # install cloudflared
-  sudo apt-get update && sudo apt-get install cloudflared
-
   sudo cloudflared service install $CLOUDFLARE_TUNNEL_KEY
   sudo systemctl enable cloudflared
+  sudo systemctl restart cloudflared
 fi
 
 
