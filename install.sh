@@ -67,24 +67,6 @@ if [ -n "$CLOUDFLARE_TUNNEL_KEY" ]; then
   sudo systemctl restart cloudflared
 fi
 
-
-
-# Section 02:
-# The script is intended for a narrow Raspberry Pi target. This guard avoids
-# running the platform-specific setup on unsupported hardware unless the test
-# flag explicitly enables development mode.
-log_section "02" "Verify hardware compatibility"
-if [[ -z "${test:-}" ]]; then
-  model=$(grep "^Model" /proc/cpuinfo ; true)
-  if [[  "$model" != *"Raspberry Pi Zero"* && "$model" != *"Raspberry Pi 4"* ]]; then
-    # Reject unsupported hardware before making system changes.
-    log_step "Unsupported hardware: installation is limited to Raspberry Pi Zero/Zero 2 or Pi 4"
-    exit 1
-  fi
-else
-  log_step "ci-chroot-test is set; running in development mode on a non-Pi system"
-fi
-
 # Section 03:
 # Running directly as root would hide which user should own the installed
 # files. This check enforces the expected pattern: regular user + sudo.
