@@ -88,6 +88,8 @@ sudo apt upgrade -y
 sudo apt install -y libglib2.0-dev build-essential 
 sudo apt install -y python3 python3-venv python3-dev
 
+sudo apt install -y jq
+
 # These packages are only here to support repository registration and secure
 # package downloads from external vendors.
 sudo apt install -y wget gnupg ca-certificates lsb-release curl
