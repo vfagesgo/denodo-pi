@@ -86,7 +86,7 @@ sudo apt update -y
 sudo apt upgrade -y 
 
 sudo apt install -y libglib2.0-dev build-essential 
-sudo apt install -y python3.11 python3.11-venv python3.11-dev
+sudo apt install -y python3 python3-venv python3-dev
 
 # These packages are only here to support repository registration and secure
 # package downloads from external vendors.
