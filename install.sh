@@ -286,7 +286,6 @@ rm -f $TARGET_DIR/Denodo.Support.Utilities.zip
 
 cd $TARGET_DIR/denodo-support-utils/bin/
 chmod +x denodo-support
-./denodo-support --version 
 
 log_step "Download Installer"
 ./denodo-support -t installer -n denodo-install-9-ga -d /home/denodo -u $DENODO_SUPPORT_CI -s $DENODO_SUPPORT_SECRET
