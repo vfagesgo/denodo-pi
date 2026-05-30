@@ -134,7 +134,6 @@ sudo apt install -y postgresql-15 postgresql-client-15 libpq-dev
 sudo apt install nginx -y
 sudo apt install gettext -y
 sudo apt install git -y
-#VFG sudo apt install bluetooth pulseaudio pulseaudio-module-bluetooth python3-dbus -y
 sudo apt install python3-gi gstreamer1.0-tools gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-ugly -y
 sudo apt install python3-pil -y
 sudo apt install python3-pip -y
@@ -290,6 +289,36 @@ sudo apt update -y
 
 sudo apt install -y zulu17-jdk
 
+# Section 11.5:
+# Get Denodo support CLI tool and pull Denodo binaries. On first install it is cloned;
+# on later runs it is refreshed so the workspace matches the remote branch.
+
+log_section "11.5" "Install Denodo Support Tools"
+ZIP_URL="https://github.com/denodo/$GITHUB_DENODO_UTILS"
+TARGET_DIR="/home/denodo/"
+DENODO_INSTALL="/home/denodo/denodo-install-9"
+
+curl -L "$ZIP_URL" -o $TARGET_DIR/Denodo.Support.Utilities.zip
+unzip -o $TARGET_DIR/Denodo.Support.Utilities.zip -d "$TARGET_DIR"
+rm -f $TARGET_DIR/Denodo.Support.Utilities.zip
+
+cd $TARGET_DIR/denodo-support-utils/bin/
+chmod +x denodo-support
+./denodo-support --version 
+
+log_step "Download Installer"
+./denodo-support -t installer -n denodo-install-9-ga -d /home/denodo -u $DENODO_SUPPORT_CI -s $DENODO_SUPPORT_SECRET
+log_step "Download Update$DENODO_UPDATE"
+./denodo-support -t update -n $DENODO_UPDATE -d /home/denodo -u aafdT1DXivDo1K0KRN1pbiOSNfaGSpsj -s 5T6HRZV13KaFllvFWr4TvHeKlkglYBzn
+
+log_step "Prepare install folder"
+cd /home/denodo
+unzip -o denodo-install-9-ga.zip 
+
+DENODO_INSTALL="/home/denodo/denodo-install-9"
+mkdir "$DENODO_INSTALL/denodo-update"
+unzip -q -o "$DENODO_UPDATE.zip" -d "$DENODO_INSTALL/denodo-update"
+unzip -q -o "denodo-update-9.4.4.zip" -d  "denodo-install-9/denodo-update"
 
 
 
@@ -297,7 +326,7 @@ sudo apt install -y zulu17-jdk
 # Prepare the Denodo installer directory, link the detected JVM, place the
 # license file, and run the unattended platform installation.
 log_section "12" "Install Denodo 9"
-DENODO_INSTALL="/home/denodo/denodo-install-9"
+
 unset DISPLAY
 cd "$DENODO_INSTALL"
 
@@ -520,10 +549,6 @@ log_step "Installing Python 3.11 with pyenv"
 MAKE_OPTS="-j$(nproc)" pyenv install -s 3.11
 pyenv global 3.11
 
-
-else #VFG Debug
-
-# Alternate path:
 # When the bootstrap block above is disabled, reuse the system Python and
 # create a project virtual environment locally instead of rebuilding Python.
 python --version

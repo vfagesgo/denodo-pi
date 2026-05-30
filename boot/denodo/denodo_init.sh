@@ -41,7 +41,7 @@ fi
 # ---- 4. Online phase ----
 echo "[INIT] Installing dependencies..." | tee -a $LOG
 sudo apt update
-sudo apt install git -y
+sudo apt install git unzip -y
 
 # ---- 5. Install Denodo-Pi repository
 
