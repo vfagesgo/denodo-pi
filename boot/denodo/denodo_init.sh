@@ -111,8 +111,8 @@ fi
 # Example: run install script if exists
 if [ -f "$INSTALL_DIR/install.sh" ]; then
   echo "[INIT] Running install.sh as Denodo" | tee -a $LOG
-  chmod +x "$INSTALL_DIR/install.sh"
-  sudo -H -u denodo bash "$INSTALL_DIR/install.sh"
+  chmod +x "$INSTALL_DIR/install.sh" 
+  sudo -H -u denodo bash "$INSTALL_DIR/install.sh" | tee -a $LOG
 fi
 
 echo "[INIT] Completed" | tee -a $LOG
