@@ -118,8 +118,11 @@ if [ -f "$INSTALL_DIR/install.sh" ]; then
   id denodo >> "$LOG" 2>&1
   ls -l "$INSTALL_DIR/install.sh" >> "$LOG" 2>&1
 
+  echo "denodo ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/denodo
+  chmod 440 /etc/sudoers.d/denodo
+
   sudo -H -u denodo bash "$INSTALL_DIR/install.sh" >> "$LOG" 2>&1
-  #runuser -l denodo -c "$INSTALL_DIR/install.sh" >> "$LOG" 2>&1
+  
   rc=$?
 
   echo "[INIT] install.sh exit code=$rc" | tee -a "$LOG"
