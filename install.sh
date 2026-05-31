@@ -318,7 +318,7 @@ JAVA_HOME=$(dirname $(dirname "$JAVA_BIN"))
 
 ln -s "$JAVA_HOME" jre
 cd denodo-update
-rmdir -R jre
+rm -rf jre
 mkdir jre
 cd jre
 ln -s "$JAVA_HOME" jre-linux
