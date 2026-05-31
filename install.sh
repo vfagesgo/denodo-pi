@@ -263,7 +263,7 @@ sudo -u postgres psql -c "ALTER ROLE $DENODO_PG_USER CREATEDB"
 # installs Zulu JDK 17 so the installer has a supported JVM.
 log_section "11" "Configure Zulu Java 17"
 curl -s https://repos.azul.com/azul-repo.key \
-| sudo gpg --dearmor -o /usr/share/keyrings/azul.gpg
+| sudo gpg --yes --dearmor -o /usr/share/keyrings/azul.gpg
 
 echo "deb [signed-by=/usr/share/keyrings/azul.gpg] https://repos.azul.com/zulu/deb stable main" \
 | sudo tee /etc/apt/sources.list.d/zulu.list

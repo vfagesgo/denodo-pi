@@ -46,12 +46,12 @@ sudo apt install git unzip -y
 # ---- 5. Install Denodo-Pi repository
 
 # Defaults (in case .env is missing values)
-GITHUB_REPO=${GITHUB_REPO:-"/vfagesgo/denodo-pi.git"}
+GITHUB_REPO=${GITHUB_REPO:-"vfagesgo/denodo-pi"}
 GITHUB_TOKEN=${GITHUB_TOKEN:-""}
 INSTALL_DIR="/opt/denodo-pi"
 BRANCH=${BRANCH:-"main"}
 
-GITHUB_REPO_URL="https://x-access-token:$GITHUB_TOKEN@github.com$GITHUB_REPO"
+GITHUB_REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPO}.git"
 
 echo "[INIT] Repo: $GITHUB_REPO" | tee -a $LOG
 echo "[INIT] Install dir: $INSTALL_DIR" | tee -a $LOG
