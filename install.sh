@@ -313,16 +313,9 @@ log_section "12" "Install Denodo 9"
 unset DISPLAY
 cd "$DENODO_INSTALL"
 
+log_step "Get JAVA_HOME"
 JAVA_BIN=$(readlink -f $(which java) || true)
 JAVA_HOME=$(dirname $(dirname "$JAVA_BIN"))
-
-ln -s "$JAVA_HOME" jre
-cd denodo-update
-rm -rf jre
-mkdir jre
-cd jre
-ln -s "$JAVA_HOME" jre-linux
-cd "$DENODO_INSTALL"
 
 # Configure for current session
 export JAVA_HOME="$JAVA_HOME"
@@ -330,6 +323,7 @@ export PATH="$JAVA_HOME/bin:$PATH"
 
 chmod +x installer_cli.sh
 
+log_step "Copy Denodo Lincense: $DENODO_LIC"
 DENODO_LIC=${DENODO_LIC:-"denodo-developer-lic-9.lic"}
 
 sudo cp "/boot/firmware/denodo/$DENODO_LIC" "$DENODO_INSTALL/denodo-developer-lic-9.lic"
@@ -338,9 +332,20 @@ sudo chown denodo:denodo "$DENODO_INSTALL/denodo-developer-lic-9.lic"
 sudo mkdir /opt/denodo-9
 sudo chown -R denodo:denodo /opt/denodo-9
 
-./installer_cli.sh install --autoinstaller response_file_9_0.xml | tee -a $LOG
+log_step "Faking JAVA JRE in Denodo Home"
+ln -s "$JAVA_HOME" jre
+cd denodo-update
+rm -rf jre
+mkdir jre
+cd jre
+ln -s "$JAVA_HOME" jre-linux
+cd "$DENODO_INSTALL"
+
+log_step "Start Denodo Install"
+./installer_cli.sh install --autoinstaller /boot/firmware/denodo/response_file_9_0.xml | tee -a $LOG
 
 ## Change Java memory parameters to be able to run on a Raspeberry PI
+log_step "Change Java Config"
 change_config() {
   local PARAM="$1"
   local CONF_FILE="$2"
