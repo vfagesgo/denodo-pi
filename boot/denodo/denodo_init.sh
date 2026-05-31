@@ -38,6 +38,38 @@ if [ -z "$ONLINE" ]; then
   exit 0
 fi
 
+echo "[INIT] Waiting for network and GitHub access..." | tee -a $LOG
+
+until getent hosts github.com >/dev/null 2>&1; do
+    echo "[INIT] Waiting for DNS..." | tee -a $LOG
+    sleep 5
+done
+
+until curl -s --head https://github.com >/dev/null 2>&1; do
+    echo "[INIT] Waiting for HTTPS connectivity..." | tee -a $LOG
+    sleep 5
+done
+
+echo "[INIT] Network is ready." | tee -a $LOG
+
+# Wait for NTP clock synchronization
+echo "[INIT] Waiting for clock synchronization..." | tee -a $LOG
+
+if command -v timedatectl >/dev/null 2>&1; then
+    timeout=120
+    while [ $timeout -gt 0 ]; do
+        if [ "$(timedatectl show -p NTPSynchronized --value 2>/dev/null)" = "yes" ]; then
+            echo "[INIT] Clock synchronized." | tee -a $LOG
+            break
+        fi
+        echo "[INIT] Waiting for NTP sync..." | tee -a $LOG
+        sleep 5
+        timeout=$((timeout-5))
+    done
+fi
+
+echo "[INIT] Current time: $(date)"
+
 # ---- 4. Online phase ----
 echo "[INIT] Installing dependencies..." | tee -a $LOG
 sudo apt update
@@ -51,7 +83,7 @@ GITHUB_TOKEN=${GITHUB_TOKEN:-""}
 INSTALL_DIR="/opt/denodo-pi"
 BRANCH=${BRANCH:-"main"}
 
-GITHUB_REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPO}.git"
+GITHUB_REPO_URL="https://x-access-token:$GITHUB_TOKEN@github.com/$GITHUB_REPO.git"
 
 echo "[INIT] Repo: $GITHUB_REPO" | tee -a $LOG
 echo "[INIT] Install dir: $INSTALL_DIR" | tee -a $LOG
@@ -61,8 +93,11 @@ mkdir -p "$INSTALL_DIR"
 # Clone or update repo
 if [ ! -d "$INSTALL_DIR/.git" ]; then
   echo "[INIT] Cloning Denodo-PI repository..." | tee -a $LOG
-  git clone -b "$BRANCH" "$GITHUB_REPO_URL" "$INSTALL_DIR"
-  chown -R denodo:denodo "$INSTALL_DIR"
+  echo "[INIT] GITHUB_TOKEN: $GITHUB_TOKEN" | tee -a $LOG
+  echo "[INIT] GITHUB_REPO: $GITHUB_REPO" | tee -a $LOG
+  echo "[INIT] GITHUB_REPO_URL: $GITHUB_REPO_URL" | tee -a $LOG
+  git clone -b "$BRANCH" "$GITHUB_REPO_URL" "$INSTALL_DIR" | tee -a $LOG
+  chown -R denodo:denodo "$INSTALL_DIR" | tee -a $LOG
   
 else
   echo "[INIT] Updating repository (force reset)..." | tee -a "$LOG"
