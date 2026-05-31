@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set +e
 
 LOG=/var/log/4-denodo_install.log
 sudo touch $LOG

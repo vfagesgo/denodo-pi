@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set +e
 
 LOG=/var/log/3-denodo_init.log
 echo "[INIT] Starting Denodo config..." | tee -a $LOG
@@ -112,7 +112,18 @@ fi
 if [ -f "$INSTALL_DIR/install.sh" ]; then
   echo "[INIT] Running install.sh as Denodo" | tee -a $LOG
   chmod +x "$INSTALL_DIR/install.sh" 
-  sudo -H -u denodo bash "$INSTALL_DIR/install.sh" | tee -a $LOG
+
+  echo "[INIT] whoami=$(whoami)" | tee -a "$LOG"
+  echo "[INIT] denodo user:" | tee -a "$LOG"
+  id denodo >> "$LOG" 2>&1
+  ls -l "$INSTALL_DIR/install.sh" >> "$LOG" 2>&1
+
+  #sudo -H -u denodo bash "$INSTALL_DIR/install.sh" >> "$LOG" 2>&1
+  runuser -l denodo -c "$INSTALL_DIR/install.sh" >> "$LOG" 2>&1
+  rc=$?
+
+  echo "[INIT] install.sh exit code=$rc" | tee -a "$LOG"
+
 fi
 
 echo "[INIT] Completed" | tee -a $LOG
