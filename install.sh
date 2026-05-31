@@ -301,9 +301,7 @@ unzip -o denodo-install-9-ga.zip
 DENODO_INSTALL="/home/denodo/denodo-install-9"
 mkdir "$DENODO_INSTALL/denodo-update"
 unzip -q -o "$DENODO_UPDATE.zip" -d "$DENODO_INSTALL/denodo-update"
-unzip -q -o "denodo-update-9.4.4.zip" -d  "denodo-install-9/denodo-update"
-
-
+mv "$DENODO_UPDATE.zip" "$DENODO_INSTALL/denodo-update.jar"
 
 # Section 12:
 # Prepare the Denodo installer directory, link the detected JVM, place the
@@ -598,8 +596,7 @@ sudo apt update
 
 # Force the requirements to use the system sqlite build. This avoids pulling
 # an extra binary package that is not needed on the Raspberry Pi image.
-#sed -i 's/^pysqlite3-binary/#pysqlite3-binary/' requirements.txt
-sed -i 's/^pysqlite3-binary$/pysqlite3/' requirements.txt
+sed -i 's/^pysqlite3-binary==/pysqlite3==/' requirements.txt
 
 /home/denodo/$VENV_DIR/bin/python -m pip install --no-cache-dir --prefer-binary -r requirements.txt
 
