@@ -1,5 +1,5 @@
 #!/bin/bash
-set +e
+set -euo pipefail
 
 LOG=/var/log/3-denodo_init.log
 echo "[INIT] Starting Denodo config..." | tee -a $LOG
@@ -118,8 +118,8 @@ if [ -f "$INSTALL_DIR/install.sh" ]; then
   id denodo >> "$LOG" 2>&1
   ls -l "$INSTALL_DIR/install.sh" >> "$LOG" 2>&1
 
-  #sudo -H -u denodo bash "$INSTALL_DIR/install.sh" >> "$LOG" 2>&1
-  runuser -l denodo -c "$INSTALL_DIR/install.sh" >> "$LOG" 2>&1
+  sudo -H -u denodo bash "$INSTALL_DIR/install.sh" >> "$LOG" 2>&1
+  #runuser -l denodo -c "$INSTALL_DIR/install.sh" >> "$LOG" 2>&1
   rc=$?
 
   echo "[INIT] install.sh exit code=$rc" | tee -a "$LOG"

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-set +e
+set -euo pipefail
 
 LOG=/var/log/4-denodo_install.log
-sudo touch $LOG
-sudo chown -R denodo:denodo "$LOG"
+#sudo touch $LOG
+#sudo chown -R denodo:denodo "$LOG"
 # This installer makes privileged changes across the OS, so fail early on
 # missing variables, command failures inside pipelines, and unexpected errors.
 set -uo pipefail
