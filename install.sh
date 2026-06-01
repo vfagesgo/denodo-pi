@@ -301,7 +301,7 @@ unzip -o denodo-install-9-ga.zip
 DENODO_INSTALL="/home/denodo/denodo-install-9"
 mkdir "$DENODO_INSTALL/denodo-update"
 unzip -q -o "$DENODO_UPDATE.zip" -d "$DENODO_INSTALL/denodo-update"
-mv "$DENODO_UPDATE.zip" "$DENODO_INSTALL/denodo-update.jar"
+mv "$DENODO_INSTALL/denodo-update/$DENODO_UPDATE.jar" "$DENODO_INSTALL/denodo-update/denodo-update.jar"
 
 # Section 12:
 # Prepare the Denodo installer directory, link the detected JVM, place the
@@ -656,3 +656,5 @@ for service_file in $INSTALL_DIR/services/*.service ; do
 
   sudo systemctl enable ${name}
 done
+
+reboot
