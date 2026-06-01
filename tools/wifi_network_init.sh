@@ -133,6 +133,8 @@ main() {
     exit 1
   fi
 
+  log_step "Wifi assword found for SSID '$ssid' in $password"
+
   local country
   country=$(extract_country "$network_config")
   country=${country:-FR}
