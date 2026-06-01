@@ -292,7 +292,7 @@ chmod +x denodo-support
 log_step "Download Installer"
 ./denodo-support -t installer -n denodo-install-9-ga -d /home/denodo -u $DENODO_SUPPORT_CI -s $DENODO_SUPPORT_SECRET
 log_step "Download Update$DENODO_UPDATE"
-./denodo-support -t update -n $DENODO_UPDATE -d /home/denodo -u aafdT1DXivDo1K0KRN1pbiOSNfaGSpsj -s 5T6HRZV13KaFllvFWr4TvHeKlkglYBzn
+./denodo-support -t update -n $DENODO_UPDATE -d /home/denodo -u $DENODO_SUPPORT_CI -s $DENODO_SUPPORT_SECRET
 
 log_step "Prepare install folder"
 cd /home/denodo
