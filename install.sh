@@ -625,7 +625,7 @@ log_section "15" "Configure nginx"
 
 log_step "Installing Nginx configuration file"
 
-sudo cp /opt/denodo-pi/nginx-site.conf /etc/nginx/sites-enabled/pyaw
+sudo cp -f /opt/denodo-pi/nginx-site.conf /etc/nginx/sites-enabled/default
 
 sudo chmod o+rx /opt
 sudo chmod o+rx /opt/denodo-pi
@@ -634,7 +634,7 @@ sudo chmod -R o+rx /opt/denodo-pi/www
 sudo chgrp -R www-data /opt/denodo-pi/www
 sudo chmod -R 750 /opt/denodo-pi/www
 
-sudo usermod -aG www-data www-data
+sudo usermod -aG www-data www-datavi ngin 
 
 log_step "Restarting Nginx" 
 sudo systemctl restart nginx
