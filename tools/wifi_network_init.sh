@@ -160,21 +160,35 @@ main() {
 
 
   ## Start CLoudflare tunnel if a cloudflare CLOUDFLARE_TUNNEL_KEY is define
-  if [ -n "${CLOUDFLARE_TUNNEL_KEY:-}" ]; then
-    log_section "4" "Configure Cloudflare Tunnel"
-    if [ -f /etc/systemd/system/cloudflared.service ]; then
-      log_step "Removing existing cloudflared service"
 
-      sudo systemctl stop cloudflared || true
-      sudo cloudflared service uninstall || true
-      sudo systemctl restart cloudflared
+  disable_cloudflared() {
+    if [ -f /etc/systemd/system/cloudflared.service ]; then
+        log_step "Disabling cloudflared"
+
+        sudo systemctl stop cloudflared || true
+        sudo systemctl disable cloudflared || true
+        sudo cloudflared service uninstall || true
     fi
+  }
+
+  log_section "4" "Configure Cloudflare Tunnel"
+  if [ -n "${CLOUDFLARE_TUNNEL_KEY:-}" ]; then
+    
+    log_step "Installing cloudflared service"
+
+    disable_cloudflared
+  
 
     log_step "install cloudflared service"
 
-    sudo cloudflared service install "$CLOUDFLARE_TUNNEL_KEY"
-    sudo systemctl enable cloudflared
-    sudo systemctl restart cloudflared
+    if sudo  sudo cloudflared service install "$CLOUDFLARE_TUNNEL_KEY"; then
+      sudo systemctl enable cloudflared
+      sudo systemctl restart cloudflared
+         log_step "Cloudflare tunnel installed successfully"
+    else
+        log_error "Invalid tunnel token or installation failed"
+        disable_cloudflared
+    fi   
   fi
 }
 

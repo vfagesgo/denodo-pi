@@ -33,6 +33,8 @@ main() {
     log_step "Copy Denodo license $DENODO_LIC"
     sudo cp "/boot/firmware/denodo/$DENODO_LIC" "/opt/denodo-9/conf/denodo.lic"
     sudo chown denodo:denodo "/opt/denodo-9/conf/denodo.lic"
+  else 
+    sudo rm /opt/denodo-9/conf/denodo.lic
   fi
 
   # Copy AISDK config File
@@ -40,6 +42,8 @@ main() {
     log_step "Update Denodo AISDK config file"
     sudo cp "/boot/firmware/denodo/sdk_config.env" "/opt/denodo-aisdk/api/utils/sdk_config.env"
     sudo chown denodo:denodo "/opt/denodo-aisdk/api/utils/sdk_config.env"
+  else
+    sudo rm /opt/denodo-aisdk/api/utils/sdk_config.env
   fi
 
   # Copy Chatbot config File
@@ -47,6 +51,8 @@ main() {
     log_step "Update Denodo chatbot config file"
     sudo cp "/boot/firmware/denodo/chatbot_config.env" "/opt/denodo-aisdk/sample_chatbot/chatbot_config.env"
     sudo chown denodo:denodo "/opt/denodo-aisdk/sample_chatbot/chatbot_config.env"
+  else 
+    sudo rm /opt/denodo-aisdk/sample_chatbot/chatbot_config.env
   fi
 
   
