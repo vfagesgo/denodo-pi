@@ -634,8 +634,8 @@ sudo chmod -R o+rx /opt/denodo-pi/www
 sudo chgrp -R www-data /opt/denodo-pi/www
 sudo chmod -R 750 /opt/denodo-pi/www
 
-sudo usermod -aG www-data www-datavi ngin 
-
+sudo usermod -aG www-data www-data
+ 
 log_step "Restarting Nginx" 
 sudo systemctl restart nginx
   

@@ -52,7 +52,6 @@ until getent hosts github.com >/dev/null 2>&1; do
     if [ $timeout -le 0 ]; then
         echo "[INIT] Network timeout. Cleaning cloud-init state." | tee -a "$LOG"
         cloud-init clean --logs
-        reboot
         exit 0
     fi
 
@@ -67,7 +66,6 @@ until curl -s --head https://github.com >/dev/null 2>&1; do
     if [ $timeout -le 0 ]; then
         echo "[INIT] Network timeout. Cleaning cloud-init state." | tee -a "$LOG"
         cloud-init clean --logs
-        reboot
         exit 0
     fi
 done
