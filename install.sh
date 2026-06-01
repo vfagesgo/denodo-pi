@@ -657,4 +657,4 @@ for service_file in $INSTALL_DIR/services/*.service ; do
   sudo systemctl enable ${name}
 done
 
-reboot
+sudo reboot
