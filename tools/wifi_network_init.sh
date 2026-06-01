@@ -171,15 +171,12 @@ main() {
     fi
   }
 
+  disable_cloudflared
+
   log_section "4" "Configure Cloudflare Tunnel"
   if [ -n "${CLOUDFLARE_TUNNEL_KEY:-}" ]; then
     
     log_step "Installing cloudflared service"
-
-    disable_cloudflared
-  
-
-    log_step "install cloudflared service"
 
     if sudo  sudo cloudflared service install "$CLOUDFLARE_TUNNEL_KEY"; then
       sudo systemctl enable cloudflared
