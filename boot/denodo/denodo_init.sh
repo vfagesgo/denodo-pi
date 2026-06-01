@@ -40,14 +40,36 @@ fi
 
 echo "[INIT] Waiting for network and GitHub access..." | tee -a $LOG
 
+
+timeout=300
+
 until getent hosts github.com >/dev/null 2>&1; do
     echo "[INIT] Waiting for DNS..." | tee -a $LOG
     sleep 5
+
+    timeout=$((timeout-5))
+
+    if [ $timeout -le 0 ]; then
+        echo "[INIT] Network timeout. Cleaning cloud-init state." | tee -a "$LOG"
+        cloud-init clean --logs
+        reboot
+        exit 0
+    fi
+
 done
 
 until curl -s --head https://github.com >/dev/null 2>&1; do
     echo "[INIT] Waiting for HTTPS connectivity..." | tee -a $LOG
     sleep 5
+
+    timeout=$((timeout-5))
+
+    if [ $timeout -le 0 ]; then
+        echo "[INIT] Network timeout. Cleaning cloud-init state." | tee -a "$LOG"
+        cloud-init clean --logs
+        reboot
+        exit 0
+    fi
 done
 
 echo "[INIT] Network is ready." | tee -a $LOG
