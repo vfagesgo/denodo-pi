@@ -147,11 +147,11 @@ main() {
   # Wait until the SSID becomes visible
   for i in {1..30}; do
       if nmcli -t -f SSID device wifi list | grep -Fxq "$ssid"; then
-          echo "[WIFI-INIT] Found SSID '$ssid'"
+          log_step "[WIFI-INIT] Found SSID '$ssid'"
           break
       fi
 
-      echo "[WIFI-INIT] Waiting for SSID '$ssid'..."
+      log_step "[WIFI-INIT] Waiting for SSID '$ssid'..."
       sleep 2
   done
 
