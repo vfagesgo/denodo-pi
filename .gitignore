@@ -1,2 +1,4 @@
 .DS_Store
 boot/denodo/denodo-developer-lic-9.lic
+boot/denodo/sdk_config.env
+boot/denodo/chatbot_config.env

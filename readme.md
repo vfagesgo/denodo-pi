@@ -11,21 +11,60 @@ Minimum requirements:
 
 This documentation is aiming to provide a semi automated painful less installation of Denodo Developer Tier on Raspberry PI ARM 64 bits architecture. If you are sucessful and with a bite of luck, you should end up with with the following stack installed.
 
-*
+* Denodo VDP
+* Denodo Design Studio
+* Denodo Data MarketPlace
+* Denodo AISDK
+* Denodo Sample Chabot
+* Nginx HTTP server with link to all the tools
 
-# Lite Raspberry PI OS Image
-Raspberry PI OS Lite (64-bit) 2026-04-13
-Use Raspberry PI imager
-https://www.raspberrypi.com/software/
+# Installation flow
 
-*name:* denodo-pi
-*password:* denodo/password 
+## Lite Raspberry PI OS Image
+First you need to obtain a copy of **Raspberry PI OS Lite (64-bit) 2026-04-13**
 
-# Configuration flow
+You can use [**Use Raspberry PI imager**](https://www.raspberrypi.com/software/)
+ Create a user 
+
+* *host name:* **denodo-pi***
+* *user:* **denodo** 
+* *password:* **password** 
+
+## Configuration flow
+
 * Flash the SD card
-* Edit */boot* from your Desktop
+* Open the SD card from your Desktop machine **bootfs**
+* Copy to the SD card the following files from the **/boot** folder of the project
+    * meta-data
+    * user-data
+    * network-config
+    * the full content of the **/boot/denodo** folder
+
+### Edit the ```network-config```
+Replace the **\<SSID\>** and **\<Password\>** with your Wifi SSID and Password
+
+### Edit the ```denodo/denodo_config.env```
+
+| Variable | Description|
+|----------|------------|
+|GITHUB_TOKEN|Github token to pull **/vfagesgo/denodo-pi.git** |
+|DENODO_SUPPORT_CI|Your Denodo support CLIENT_ID to download in CLI the Denodo Binaries|
+|DENODO_SUPPORT_SECRET|Your Denodo support SECRET|
+|DENODO_UPDATE| The Denodo 9 update version to be installed (denodo-update-9.4.4)|
+|DENODO_LIC|The name of your Denodo Developer licence file that must be place under /denodo|
+
+### Configure the AI-SDK and Sample Chatbot
+
+Rename and update the following AI-SDK and Sample Chatbot config files under **/denodo**:
+* sdk_config.env.example to  sdk_config.env
+* chatbot_config.env.example to  chatbot_config.env
+
+### Run automatic Install
+
+Once the SDCard configuration is completed, inser the card in your RasberryPI and power it up. **The first boot will take about 45min to fully comlplete the setup (depending of your Internet connextion speed)**
+
 * First boot:
-    * installs + configures cloud-init
+    * installs + configures RPI cloud-init
     * enables NoCloud datasource from /boot
     * reboots
 * Second boot:
@@ -33,7 +72,15 @@ https://www.raspberrypi.com/software/
     * loads .env
     * executes your install script
 
-## Debugging (super useful)
+**During the installation you can connect to the machine using **ssh**
+
+```
+ssh denodo@denodo-pi.local
+```
+
+
+
+### Debugging Commands (super useful)
 
 **After boot:**
 ```
@@ -44,57 +91,27 @@ cat /var/log/3-denodo_init.log
 cat /var/log/4-denodo_install.log
 ```
 
-# Install the SD Card
-create a wifi password
 
 
+**Cloud-init**
 
-# Cloud-init
 This is used to initialise the image
-
 Reset cloud-init with the following command
 ```
 sudo cloud-init clean
 sudo reboot
 ```
+**Pre install Check**
 
-## On boot, cloud-init will:
-
-* Read /boot/meta-data + user-data
-* Install packages
-* Create /usr/local/bin/bootstrap.sh
-* Execute it
-* Load your .env
-* Run your init.sh
-
-# Pre install Check
+```
 sudo raspi-config
+```
 
+**Note for debug**
 
-# Note for debug
-
+```
 /opt/denodo-pi/git fetch origin
 /opt/denodo-pi/git reset --hard origin/main
 /opt/denodo-pi/chmod +x install.sh 
 /opt/denodo-pi/ ./install.sh
-
-
-# install flask
-sudo apt-get update --fix-missing
-pip3 install flask
-
-# install RaspiWifi
-https://github.com/jasbur/RaspiWiFi
-sudo apt install git
-git clone https://github.com/jasbur/RaspiWiFi.git
-
-cd RaspiWiFi
-sudo python3 initial_setup.py
-
-Change the Layout of the config app
-/usr/lib/raspiwifi/configuration_app
-
-config
-/etc/raspiwifi/raspiwifi.conf
-
-
+```
