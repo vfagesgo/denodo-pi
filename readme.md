@@ -20,15 +20,30 @@ This documentation is aiming to provide a semi automated painful less installati
 
 # Installation flow
 
+## Options
+
+Before to get started, you might be in one of the other cases. 
+* Either you already have a Denodo RPI disk image with the software stack already installed and in that case you will only need to apply your Denodo license file and configure the WiFi network.
+* Alternatively you need to build the image from scratch and then pocessed by flashing a new SD Card with a PI OS image. 
+
+## Quick-Start
+
+If you already have a an SD Card with the disk image, you only focus on the section to configure  ```network-config``` , ```denodo/denodo_config.env``` and the **AI-SDK**
+
+You can then directly access the platform via the following URL http://denodo-pi.local
+
 ## Lite Raspberry PI OS Image
 First you need to obtain a copy of **Raspberry PI OS Lite (64-bit) 2026-04-13**
 
-You can use [**Use Raspberry PI imager**](https://www.raspberrypi.com/software/)
- Create a user 
+You can use [**Use Raspberry PI imager**](https://www.raspberrypi.com/software/) to Create a user 
 
-* *host name:* **denodo-pi***
+* *host name:* **denodo-pi**
 * *user:* **denodo** 
 * *password:* **password** 
+
+**Denodo Application User**
+*  *user:* **admin** 
+*  *password:* **admin** 
 
 ## Configuration flow
 
