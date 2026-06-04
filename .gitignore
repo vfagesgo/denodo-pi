@@ -1,4 +1,8 @@
 .DS_Store
+<<<<<<< HEAD
 boot/denodo/denodo-developer-lic-9.lic
 boot/denodo/sdk_config.env
 boot/denodo/chatbot_config.env
+=======
+*.DS_Store
+>>>>>>> ebc779068433ffa5e9812a7970d817b031ea42a3
