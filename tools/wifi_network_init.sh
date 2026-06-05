@@ -164,32 +164,36 @@ main() {
 
   ## Start CLoudflare tunnel if a cloudflare CLOUDFLARE_TUNNEL_KEY is define
 
-  disable_cloudflared() {
-    if [ -f /etc/systemd/system/cloudflared.service ]; then
-        log_step "Disabling cloudflared"
-
-        sudo systemctl stop cloudflared || true
-        sudo systemctl disable cloudflared || true
-        sudo cloudflared service uninstall || true
-    fi
-  }
-
-  disable_cloudflared
+  CLOUDFLARED_SYSTEMD="/etc/systemd/system/cloudflared.service"
+  CF_TOKEN_FILE="/etc/cloudflared/tunnel-token"
 
   log_section "4" "Configure Cloudflare Tunnel"
-  if [ -n "${CLOUDFLARE_TUNNEL_KEY:-}" ]; then
-    
-    log_step "Installing cloudflared service"
+  if [ -z "${CLOUDFLARE_TUNNEL_KEY:-}" ]; then
+    log_step "No CLOUDFLARE_TUNNEL_KEY → disabling cloudflared"
 
-    if sudo  sudo cloudflared service install "$CLOUDFLARE_TUNNEL_KEY"; then
-      sudo systemctl enable cloudflared
-      sudo systemctl restart cloudflared
-         log_step "Cloudflare tunnel installed successfully"
-    else
-        log_error "Invalid tunnel token or installation failed"
-        disable_cloudflared
-    fi   
+    sudo systemctl stop cloudflared || true
+    sudo systemctl disable cloudflared || true
+
+    log_step "cloudflared disabled"
+  else
+    log_step "Updating Cloudflare tunnel token"
+
+    sudo mkdir -p /etc/cloudflared
+
+    # overwrite token safely
+    echo "$CLOUDFLARE_TUNNEL_KEY" | sudo tee "$CF_TOKEN_FILE" >/dev/null
+
+    sudo chmod 600 "$CF_TOKEN_FILE"
+
+    # ensure systemd service uses token file (installed once only!)
+    sudo systemctl enable cloudflared || true
+
+    sudo systemctl restart cloudflared
+
+    log_step "cloudflared started with updated token"
   fi
+
+
 }
 
 main "$@"
