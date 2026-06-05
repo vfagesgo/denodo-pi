@@ -178,6 +178,7 @@ main() {
     log_step "Updating Cloudflare tunnel token"
 
     sudo systemctl stop cloudflared || true
+    sudo rm /etc/cloudflared/token
 
     sudo mkdir -p /etc/cloudflared || true
   
