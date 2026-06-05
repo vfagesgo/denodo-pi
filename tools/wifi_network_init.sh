@@ -184,7 +184,7 @@ main() {
     #sudo systemctl enable cloudflared || true
     #sudo systemctl restart cloudflared || true
 
-    sudo /usr/bin/cloudflared --no-autoupdate tunnel run --token $CLOUDFLARE_TUNNEL_KEY
+    sudo /usr/bin/cloudflared --no-autoupdate tunnel run --token $CLOUDFLARE_TUNNEL_KEY & 
 
     log_step "cloudflared restarted with new token"
   fi
