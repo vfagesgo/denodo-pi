@@ -171,7 +171,7 @@ main() {
     log_step "No CLOUDFLARE_TUNNEL_KEY → disabling cloudflared"
 
     sudo systemctl stop cloudflared || true
-    sudo systemctl disable cloudflared || true
+    sudo rm /etc/cloudflared/token
 
     log_step "cloudflared disabled"
   else
@@ -187,9 +187,8 @@ main() {
     sudo chmod 600 /etc/cloudflared/token
 
     # ensure systemd service uses token file (installed once only!)
-    sudo systemctl enable cloudflared || true
-
-    sudo systemctl restart cloudflared
+    
+    sudo systemctl start cloudflared
 
     log_step "cloudflared started with updated token"
   fi
