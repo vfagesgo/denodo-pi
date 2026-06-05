@@ -177,11 +177,14 @@ main() {
   else
     log_step "Updating Cloudflare token in systemd unit"
 
-    sudo sed -i "s|--token .*|--token ${CLOUDFLARE_TUNNEL_KEY}|" "$UNIT_FILE"
+    sudo systemctl stop cloudflared || true
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable cloudflared || true
-    sudo systemctl restart cloudflared || true
+    #sudo sed -i "s|--token .*|--token ${CLOUDFLARE_TUNNEL_KEY}|" "$UNIT_FILE"
+    #sudo systemctl daemon-reload
+    #sudo systemctl enable cloudflared || true
+    #sudo systemctl restart cloudflared || true
+
+    sudo /usr/bin/cloudflared --no-autoupdate tunnel run --token $CLOUDFLARE_TUNNEL_KEY
 
     log_step "cloudflared restarted with new token"
   fi
