@@ -164,34 +164,26 @@ main() {
 
   ## Start CLoudflare tunnel if a cloudflare CLOUDFLARE_TUNNEL_KEY is define
 
-  CLOUDFLARED_SYSTEMD="/etc/systemd/system/cloudflared.service"
+  UNIT_FILE="/etc/systemd/system/cloudflared.service"
 
   log_section "4" "Configure Cloudflare Tunnel"
   if [ -z "${CLOUDFLARE_TUNNEL_KEY:-}" ]; then
     log_step "No CLOUDFLARE_TUNNEL_KEY → disabling cloudflared"
 
     sudo systemctl stop cloudflared || true
-    sudo rm /etc/cloudflared/token
+    sudo systemctl disable cloudflared || true
 
     log_step "cloudflared disabled"
   else
-    log_step "Updating Cloudflare tunnel token"
+    log_step "Updating Cloudflare token in systemd unit"
 
-    sudo systemctl stop cloudflared || true
-    sudo rm /etc/cloudflared/token
+    sudo sed -i "s|--token .*|--token ${CLOUDFLARE_TUNNEL_KEY}|" "$UNIT_FILE"
 
-    sudo mkdir -p /etc/cloudflared || true
-  
-    # overwrite token safely
-    echo "$CLOUDFLARE_TUNNEL_KEY" | sudo tee /etc/cloudflared/token >/dev/null
+    sudo systemctl daemon-reload
+    sudo systemctl enable cloudflared || true
+    sudo systemctl restart cloudflared || true
 
-    sudo chmod 600 /etc/cloudflared/token
-
-    # ensure systemd service uses token file (installed once only!)
-    
-    sudo systemctl start cloudflared
-
-    log_step "cloudflared started with updated token"
+    log_step "cloudflared restarted with new token"
   fi
 
 
