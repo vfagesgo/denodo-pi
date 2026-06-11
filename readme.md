@@ -130,3 +130,21 @@ sudo raspi-config
 /opt/denodo-pi/chmod +x install.sh 
 /opt/denodo-pi/ ./install.sh
 ```
+
+**Clone SD Card Image on MAC OS
+
+Step 1: Insert SD card and find it
+diskutil list
+Step 2: Unmount the disk (NOT eject)
+diskutil unmountDisk /dev/disk5
+
+Step 3: Create image backup
+ sudo dd if=/dev/rdisk5 of=raspberrypi.img bs=4m status=progress
+
+Step 4: Restore to another SD card
+
+diskutil list
+diskutil unmountDisk /dev/disk5
+
+sudo dd if=Denodo-pi-img-raw.dmg of=/dev/rdisk5 bs=4m status=progress
+sync
